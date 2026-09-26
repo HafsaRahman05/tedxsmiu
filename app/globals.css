@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+:root {
+  /* TEDxSMIU Base Colors */
+  --color-ink: #08080a;
+  --color-surface: #111114;
+  --color-surface-raised: #18181d;
+  --color-line: rgba(255, 255, 255, 0.1);
+  --color-line-bold: rgba(255, 255, 255, 0.2);
+  --color-paper: #f6f5f0;
+  --color-paper-dim: #c7c5bc;
+  --color-paper-muted: #84837d;
+  --color-red: #EB0028;
+  --color-red-hover: #c40022;
+  --color-red-dim: #7a1f19;
+
+  /* Shadcn UI Variables mapping to TEDxSMIU theme */
+  --background: var(--color-ink);
+  --foreground: var(--color-paper);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-paper);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-paper);
+  --primary: var(--color-red);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-surface-raised);
+  --secondary-foreground: var(--color-paper);
+  --muted: var(--color-surface-raised);
+  --muted-foreground: var(--color-paper-dim);
+  --accent: var(--color-surface-raised);
+  --accent-foreground: var(--color-paper);
+  --destructive: var(--color-red-dim);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-line);
+  --input: var(--color-line);
+  --ring: var(--color-red);
+  
+  --radius: 0rem;
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  .text-outline {
+    -webkit-text-stroke: 1.5px rgba(246, 245, 240, 0.6);
+    color: transparent;
+  }
+  .text-outline-red {
+    -webkit-text-stroke: 1.5px #EB0028;
+    color: transparent;
+  }
+}
+
+@theme inline {
+  --color-ink: var(--color-ink);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-line: var(--color-line);
+  --color-line-bold: var(--color-line-bold);
+  --color-paper: var(--color-paper);
+  --color-paper-dim: var(--color-paper-dim);
+  --color-paper-muted: var(--color-paper-muted);
+  --color-red: var(--color-red);
+  --color-red-hover: var(--color-red-hover);
+  --color-red-dim: var(--color-red-dim);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --font-display: var(--font-anton);
+  --font-body: var(--font-inter);
+  --font-mono: var(--font-space-mono);
+  --font-helvetica: var(--font-helvetica);
+
+  --animate-marquee: marquee 26s linear infinite;
+  --animate-kenburns: kenburns 16s ease-in-out infinite alternate;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes kenburns {
+  from { transform: scale(1) translate3d(0,0,0); }
+  to { transform: scale(1.08) translate3d(-1%, -1%, 0); }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--color-ink);
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-helvetica), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-red);
+  color: #ffffff;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-helvetica {
+  font-family: var(--font-helvetica), sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    border-radius: 0px !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 3px;
+}

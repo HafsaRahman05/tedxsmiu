@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Globe, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Globe, X } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import type { Speaker } from "@/types";
 import { cleanImageUrl } from "@/lib/utils";
@@ -45,13 +45,14 @@ export default function SpeakersPreview() {
   const [speakersList, setSpeakersList] = useState<Speaker[]>([]);
   const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasScrolledGallery, setHasScrolledGallery] = useState(false);
 
   useEffect(() => {
     fetch("/api/speakers")
       .then((r) => r.json())
       .then((d) => {
         if (d.speakers && d.speakers.length > 0) {
-          // Show the newest event year first, then prioritize prominent speakers.
+          // Keep the latest event year's speakers together, prioritizing featured names.
           const priority = ["ali-zaryoun", "fahad", "bizenjo", "yousuf", "qureshi", "azekah"];
           const sorted = [...d.speakers].sort((a, b) => {
             const yearDifference = (Number(b.eventYear) || 0) - (Number(a.eventYear) || 0);
@@ -66,8 +67,8 @@ export default function SpeakersPreview() {
             if (bIdx !== -1) return 1;
             return 0;
           });
-          const currentYear = new Date().getFullYear();
-          setSpeakersList(sorted.filter((speaker) => Number(speaker.eventYear) === currentYear));
+          const latestYear = Math.max(...sorted.map((speaker) => Number(speaker.eventYear) || 0));
+          setSpeakersList(sorted.filter((speaker) => Number(speaker.eventYear) === latestYear));
         }
       })
       .catch(() => {
@@ -104,7 +105,13 @@ export default function SpeakersPreview() {
         </div>
 
         {/* Horizontal editorial speaker gallery */}
-        <div className="mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:mt-12 sm:gap-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative mt-8 sm:mt-12">
+          <div
+            onScroll={(event) => {
+              if (event.currentTarget.scrollLeft > 8) setHasScrolledGallery(true);
+            }}
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-4 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-6"
+          >
           {loading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <div
@@ -147,6 +154,14 @@ export default function SpeakersPreview() {
                   </motion.button>
                 );
               })}
+          </div>
+          {!loading && speakersList.length > 1 && !hasScrolledGallery && (
+            <div aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-0.5 px-2 py-1 text-[9px] font-mono uppercase text-white/70">
+              <ArrowRight className="h-3 w-3" />
+              <span>Swipe Left</span>
+              
+            </div>
+          )}
         </div>
 
       </div>

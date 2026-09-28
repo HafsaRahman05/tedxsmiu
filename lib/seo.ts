@@ -13,11 +13,11 @@ export const SITE_CONFIG = {
     url: "https://www.tedxsmiu.com",
     logo: "https://www.tedxsmiu.com/images/branding/X%20logo%20white.png",
     sameAs: [
-      "https://instagram.com/tedxsmiu",
-      "https://facebook.com/tedxsmiu",
-      "https://linkedin.com/company/tedxsmiu",
+      "https://www.instagram.com/tedxsmiu/",
+      "https://www.facebook.com/tedxsmiuofficial",
+      "https://www.linkedin.com/company/tedxsmiuofficial/",
       "https://x.com/tedxsmiu",
-      "https://youtube.com/@tedxsmiu",
+      "https://www.youtube.com/@TEDxSMIU-e5m",
     ],
   },
 };

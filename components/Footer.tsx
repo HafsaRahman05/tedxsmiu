@@ -9,21 +9,18 @@ import {
 } from 'react-icons/fa6';
 
 const SOCIALS = [
-  { name: "Instagram", href: "https://instagram.com", icon: FaInstagram },
-  { name: "LinkedIn", href: "https://linkedin.com", icon: FaLinkedin },
-  { name: "X", href: "https://x.com", icon: FaXTwitter },
-  { name: "YouTube", href: "https://youtube.com", icon: FaYoutube },
-  { name: "Facebook", href: "https://facebook.com", icon: FaFacebook },
+  { name: "Instagram", href: "https://www.instagram.com/tedxsmiu/", icon: FaInstagram },
+  { name: "LinkedIn", href: "https://www.linkedin.com/company/tedxsmiuofficial/", icon: FaLinkedin },
+  { name: "X", href: "https://x.com/tedxsmiu", icon: FaXTwitter },
+  { name: "YouTube", href: "https://www.youtube.com/@TEDxSMIU-e5m", icon: FaYoutube },
+  { name: "Facebook", href: "https://www.facebook.com/tedxsmiuofficial", icon: FaFacebook },
 ];
 
 const LINKS = [ 
-  { label: "Home", href: "/" },
-  { label: "Events", href: "/events" },
-  { label: "Speakers", href: "/speakers" },
-  { label: "Team", href: "/team" },
-  { label: "About", href: "/about" },
-  { label: "Partners", href: "/partners" },
-  { label: "Contact", href: "/contact" },
+  { label: "Home", href: "/" },{ label: "About", href: "/about" },
+  { label: "Events", href: "/events" },{ label: "Team", href: "/team" },
+  { label: "Speakers", href: "/speakers" },{ label: "Guest", href: "/guest" },
+  { label: "Partners", href: "/partners" },{ label: "Contact", href: "/contact" },
 ];
 
 export default function Footer() {
@@ -59,12 +56,10 @@ export default function Footer() {
             </Link>
             
             <p className="mt-4 sm:mt-5 max-w-sm font-helvetica text-xs sm:text-sm font-normal text-neutral-300 leading-relaxed">
-              In the spirit of ideas worth spreading, TEDxSMIU is an independently organized event bringing live local speakers, innovative creators, and thinkers to Sindh Madressatul Islam University.
+              TEDxSMIU is an independently organized TED event bringing inspiring ideas, voices, and thinkers to Sindh Madressatul Islam University.
             </p>
 
-            <div className="mt-3 sm:mt-4 font-mono text-[11px] sm:text-xs text-neutral-400">
-              Coordinates: <span className="text-white font-bold">24.8508° N, 67.0011° E</span>
-            </div>
+           
             
             {/* Social Icons */}
             <div className="mt-5 sm:mt-6 flex flex-wrap gap-3 sm:gap-4">

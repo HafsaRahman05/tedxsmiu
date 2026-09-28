@@ -167,7 +167,7 @@ export default async function EventsPage() {
               Past Flagship Editions
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-neutral-400 max-w-xl">
-              Relive the milestone gatherings, provocative ideas, and groundbreaking talks delivered on the TEDxSMIU stage.
+              Relive the milestone gathe rings, provocative ideas, and groundbreaking talks delivered on the TEDxSMIU stage.
             </p>
           </div> */}
 
@@ -194,7 +194,11 @@ export default async function EventsPage() {
                     date={formattedDate}
                     venue={ev.venue || "Sir Shahnawaz Bhutto Auditorium, SMIU"}
                     description={ev.description || "Together, we witnessed the transformation of thought into tangible reality."}
-                    image={ev.coverImageUrl || "/images/hero/smiu garden view.jpg"}
+                    image={
+                      eventYear === "2023"
+                        ? "https://res.cloudinary.com/rhgtzwu8/image/upload/v1790569694/copy_of_from_riveting_talks_to_awe-inspiring_performances_tedxsmiu_was_an_event_to_remember_take.webp"
+                        : ev.coverImageUrl || "/images/hero/smiu garden view.jpg"
+                    }
                     speakersCount={ev.eventSpeakers?.length || 11}
                     capacity={ev.capacity || 300}
                     reverse={idx % 2 !== 0}
@@ -212,7 +216,7 @@ export default async function EventsPage() {
                 date="September 20, 2023"
                 venue="Sir Shahnawaz Bhutto Auditorium"
                 description="Let this be the day we remember, let it not mark an end, but rather a beginning in the historic legacy of Sindh Madressatul Islam University (SMIU). Together, we witnessed the transformation of thought into tangible reality."
-                image="/images/hero/smiu garden view.jpg"
+                image="https://res.cloudinary.com/rhgtzwu8/image/upload/v1790569694/copy_of_from_riveting_talks_to_awe-inspiring_performances_tedxsmiu_was_an_event_to_remember_take.webp"
                 speakersCount={11}
                 capacity={300}
               />

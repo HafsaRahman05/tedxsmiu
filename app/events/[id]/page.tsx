@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, MapPin, Users, Mic, ArrowLeft, ExternalLink, Award } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, ExternalLink, Award } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
-import { events, eventSpeakers, eventSponsors } from "@/lib/db/schema";
+import { events, eventSpeakers, eventSponsors, team as teamTable } from "@/lib/db/schema";
 import { eq, and, isNull, or, asc } from "drizzle-orm";
 import { constructMetadata } from "@/lib/seo";
 import { getBreadcrumbSchema } from "@/lib/schema";
@@ -63,6 +63,9 @@ export default async function EventDetailPage({ params }: Props) {
           },
           orderBy: [asc(eventSponsors.sortOrder)],
         },
+        // team: {
+        //   orderBy: [asc(teamTable.sortOrder)],
+        // },
       },
     });
   } catch (err) {
@@ -73,7 +76,7 @@ export default async function EventDetailPage({ params }: Props) {
     notFound();
   }
 
-  const eventYear = eventDetail.date ? new Date(eventDetail.date).getFullYear().toString() : "2023";
+  const eventYear = eventDetail.date ? new Date(eventDetail.date).getFullYear() : 2023;
   const formattedDate = eventDetail.date
     ? new Date(eventDetail.date).toLocaleDateString("en-US", {
         weekday: "long",
@@ -83,8 +86,13 @@ export default async function EventDetailPage({ params }: Props) {
       })
     : "Wednesday, September 20, 2023";
 
-  const speakersList = eventDetail.eventSpeakers || [];
-  const sponsorsList = eventDetail.eventSponsors || [];
+  const speakersList = (eventDetail.eventSpeakers || []).filter(
+    (eventSpeaker: any) => eventSpeaker.speaker?.eventYear === eventYear,
+  );
+  const sponsorsList = (eventDetail.eventSponsors || []).filter(
+    (eventSponsor: any) => eventSponsor.sponsor?.eventYear === eventYear,
+  );
+  const teamList = eventDetail.team || [];
   const safeCoverImage = cleanImageUrl(eventDetail.coverImageUrl, "/images/hero/smiu garden view.jpg");
 
   return (
@@ -176,7 +184,7 @@ export default async function EventDetailPage({ params }: Props) {
                   </div>
                   <div>
                     <span className="block text-[10px] uppercase text-neutral-400">Speakers</span>
-                    <span className="text-primary font-bold">{speakersList.length || 11} Talks</span>
+                    <span className="text-primary font-bold">{speakersList.length} Talks</span>
                   </div>
                 </div>
               </div>
@@ -230,7 +238,7 @@ export default async function EventDetailPage({ params }: Props) {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {speakersList.map((es: any, idx: number) => {
                 const sp = es.speaker || {};
                 const speakerPhoto = cleanImageUrl(sp.imageUrl, "/images/speakers/speaker1.jpg");
@@ -238,64 +246,43 @@ export default async function EventDetailPage({ params }: Props) {
                 return (
                   <div
                     key={es.id || idx}
-                    className="border border-white/10 bg-surface flex flex-col justify-between overflow-hidden transition-all duration-300 hover:border-primary group"
+                    className="group relative mx-auto h-[22rem] w-full max-w-[18rem] overflow-hidden border border-neutral-800 bg-[#090909] text-white transition-all duration-300 hover:-translate-y-1 hover:border-primary sm:h-[23rem] lg:h-[24rem]"
                   >
-                    <div>
-                      {/* Speaker Photo */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
-                        <Image
-                          src={speakerPhoto}
-                          alt={sp.name || "Speaker"}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover object-top filter grayscale contrast-125 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent opacity-90" />
-                        
-                        <div className="absolute top-3 left-3">
-                          <span className="border border-white/20 bg-ink/90 px-2.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
-                            Talk 0{idx + 1}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-5">
-                        <h3 className="font-helvetica text-lg font-black uppercase text-white group-hover:text-primary transition-colors">
-                          {sp.name || "TEDx Speaker"}
-                        </h3>
-                        <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-neutral-400 font-semibold line-clamp-1">
-                          {sp.headline || "Speaker"}
-                        </p>
-
-                        <div className="mt-4 pt-3 border-t border-white/5">
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-primary block">
-                            Talk Title
-                          </span>
-                          <h4 className="mt-1 font-helvetica text-base font-bold text-white">
-                            {es.talkTitle || "TEDx Keynote Talk"}
-                          </h4>
-                          {es.abstract && (
-                            <p className="mt-2 text-xs text-neutral-300 leading-relaxed line-clamp-3">
-                              {es.abstract}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="px-5 pb-5 pt-2 border-t border-white/5 flex items-center justify-between font-mono text-[10px] text-neutral-400">
-                      <span>Sir Shahnawaz Bhutto Auditorium</span>
-                      {es.youtubeUrl && (
-                        <a
-                          href={es.youtubeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-white transition-colors inline-flex items-center gap-1"
-                        >
-                          Watch Talk <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
+                    <Image
+                      src={speakerPhoto}
+                      alt={sp.name || "Speaker"}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover object-top grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
+                    <span className="absolute left-3 top-3 border border-white/20 bg-black/80 px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-white">
+                      Talk {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    {es.youtubeUrl && (
+                      <a
+                        href={es.youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Watch ${sp.name || "speaker"}'s talk`}
+                        className="absolute right-3 top-3 border border-white/20 bg-black/80 p-2 text-white transition-colors hover:border-primary hover:text-primary"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                        {eventDetail.title}
+                      </span>
+                      <h3 className="mt-1 font-helvetica text-lg font-black uppercase text-white sm:text-xl">
+                        {sp.name || "TEDx Speaker"}
+                      </h3>
+                      <p className="mt-1 line-clamp-1 text-xs text-neutral-200 sm:text-sm">
+                        {sp.headline || "Speaker"}
+                      </p>
+                      {/* <p className="mt-3 border-t border-white/20 pt-2 font-helvetica text-sm font-bold text-white line-clamp-2">
+                        {es.talkTitle || "TEDx Keynote Talk"}
+                      </p> */}
                     </div>
                   </div>
                 );
@@ -354,6 +341,49 @@ export default async function EventDetailPage({ params }: Props) {
               })}
             </div>
 
+          </div>
+        </section>
+      )}
+
+      {teamList.length > 0 && (
+        <section className="border-b border-white/10 bg-ink px-4 py-16 sm:px-6 sm:py-20 lg:px-12">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-10 border-b border-white/10 pb-6">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-primary sm:text-xs">
+                The Organizers
+              </span>
+              <h2 className="mt-2 font-helvetica text-2xl font-black uppercase tracking-tight text-white sm:text-3xl lg:text-4xl">
+                {eventYear} Team
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {teamList.map((member: any) => (
+                <div
+                  key={member.id}
+                  className="group relative mx-auto h-[22rem] w-full max-w-[18rem] overflow-hidden border border-white/10 bg-black sm:h-[23rem] lg:h-[24rem]"
+                >
+                  <Image
+                    src={cleanImageUrl(member.imageUrl, "/images/speakers/speaker1.jpg")}
+                    alt={member.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover object-top grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                      {member.department}
+                    </span>
+                    <h3 className="mt-1 font-helvetica text-lg font-black uppercase text-white sm:text-xl">
+                      {member.name}
+                    </h3>
+                    <p className="mt-1 text-xs text-neutral-200 sm:text-sm">
+                      {member.designation || member.role}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}

@@ -256,6 +256,23 @@ export const team = pgTable("team", {
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
+export const leadership = pgTable("leadership", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  department: text("department"),
+  designation: text("designation"),
+  imageUrl: text("image_url"),
+  bio: text("bio"),
+  socialLinks: text("social_links").default("[]"),
+  leadershipType: text("leadership_type").default("Lead").notNull(),
+  eventYear: integer("event_year").notNull(),
+  sortOrder: integer("sort_order").default(0),
+  status: text("status").default("ACTIVE").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
+});
+
 export const contacts = pgTable("contacts", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),

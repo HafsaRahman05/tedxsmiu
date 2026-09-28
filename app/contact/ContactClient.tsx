@@ -3,22 +3,23 @@
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import { Users, Mic, Mail, Phone, MapPin, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const CONTACT_INFO = [
   {
-    title: "General Inquiries",
-    detail: "hello@tedxsmiu.com",
+    title: "Official Email",
+    detail: "tedxsmiuofficial@gmail.com",
     subtext: "For questions about the event, ticketing, or schedule",
     icon: Mail,
-    href: "mailto:hello@tedxsmiu.com",
+    href: "mailto:tedxsmiuofficial@gmail.com",
   },
   {
     title: "Phone & WhatsApp",
-    detail: "+92 300 0000000",
-    subtext: "Mon - Fri from 9:00 AM to 5:00 PM (PKT)",
+    detail: "+92 309 2501412",
+    subtext: "Reach our organizing team by phone or WhatsApp",
     icon: Phone,
-    href: "tel:+923000000000",
+    href: "tel:+923092501412",
   },
   {
     title: "Venue & Campus",
@@ -26,6 +27,27 @@ const CONTACT_INFO = [
     subtext: "Aiwan-e-Tijarat Road, Shahrah-e-Liaquat, Karachi, Pakistan",
     icon: MapPin,
     href: "https://maps.google.com/?q=Sindh+Madressatul+Islam+University",
+  },
+];
+
+const LEADS = [
+  {
+    name: "Asadullah Shaikh",
+    role: "License Holder, TEDxSMIU 2.0",
+    email: "asadullahshaikh244@gmail.com",
+    phone: "+92 309 2501412",
+  },
+  {
+    name: "Ali Mehdi Abro",
+    role: "Lead Organizer, TEDxSMIU 2.0",
+    email: "aliabro626@gmail.com",
+    phone: "+92 313 1588717",
+  },
+  {
+    name: "Hasnain Ali",
+    role: "Co-Lead Organizer, TEDxSMIU 2.0",
+    email: "hasnainali7673@outlook.com",
+    phone: "+92 317 0897673",
   },
 ];
 
@@ -80,6 +102,62 @@ export default function ContactClient() {
             })}
           </div>
 
+        </div>
+      </section>
+
+      {/* Lead contacts */}
+      <section className="border-b border-border bg-black px-6 py-20 text-foreground lg:px-10 lg:py-24">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="mb-12 max-w-2xl">
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-primary">
+              TEDxSMIU 2.0
+            </p>
+            <h2 className="mt-3 font-display text-3xl font-black uppercase tracking-tight sm:text-5xl">
+              Organizing Leads
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Connect with the team leading the TEDxSMIU experience. 
+              For general inquiries, reach out through our official team email.
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {LEADS.map((lead, index) => (
+              <article
+                key={lead.name}
+                className="group border border-white/10 bg-surface transition-colors duration-300 hover:border-primary"
+              >
+                <div className="p-6">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
+                    {lead.role}
+                  </p>
+                  <h3 className="mt-2 font-display text-2xl font-black uppercase leading-tight">
+                    {lead.name}
+                  </h3>
+                  <div className="mt-6 space-y-2 border-t border-white/10 pt-4 text-sm text-muted-foreground">
+                    <a
+                      href={`mailto:${lead.email}`}
+                      className="block transition-colors hover:text-primary"
+                    >
+                      {lead.email}
+                    </a>
+                    <a
+                      href={`tel:${lead.phone.replace(/\s/g, "")}`}
+                      className="block transition-colors hover:text-primary"
+                    >
+                      Phone / WhatsApp: {lead.phone}
+                    </a>
+                    <a
+                      href="mailto:tedxsmiuofficial@gmail.com"
+                      className="block transition-colors hover:text-primary"
+                    >
+                      tedxsmiuofficial@gmail.com
+                    </a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

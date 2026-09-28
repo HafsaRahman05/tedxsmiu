@@ -3,13 +3,63 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowUpRight, X } from "lucide-react";
+import { ArrowUpRight, Globe, Mail, X } from "lucide-react";
+import {
+  FaFacebook,
+  FaGithub,
+  FaInstagram,
+  FaSquareXTwitter,
+  FaYoutube,
+} from "react-icons/fa6";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Guest } from "@/types";
 
 type GuestRecord = Guest & { headline?: string | null };
+type GuestSocialLink = { platform: string; url: string };
+
+function SocialPlatformIcon({ platform }: { platform: string }) {
+  const normalizedPlatform = platform.toLowerCase();
+  const iconClassName = "h-4.5 w-4.5";
+
+  if (normalizedPlatform.includes("linkedin")) {
+    return <span className="font-sans text-lg font-black leading-none tracking-[-0.08em]">in</span>;
+  }
+  if (normalizedPlatform.includes("instagram")) return <FaInstagram className={iconClassName} />;
+  if (normalizedPlatform.includes("twitter") || normalizedPlatform === "x") return <FaSquareXTwitter className={iconClassName} />;
+  if (normalizedPlatform.includes("facebook")) return <FaFacebook className={iconClassName} />;
+  if (normalizedPlatform.includes("youtube")) return <FaYoutube className={iconClassName} />;
+  if (normalizedPlatform.includes("github")) return <FaGithub className={iconClassName} />;
+  if (normalizedPlatform.includes("email")) return <Mail className={iconClassName} />;
+  return <Globe className={iconClassName} />;
+}
+
+function normalizeSocialLinks(value: GuestRecord["socialLinks"]): GuestSocialLink[] {
+  let parsed: unknown = value;
+  if (typeof parsed === "string") {
+    const rawValue = parsed;
+    try {
+      parsed = JSON.parse(rawValue);
+    } catch {
+      return rawValue.trim() ? [{ platform: "Link", url: rawValue.trim() }] : [];
+    }
+  }
+
+  const parsedLinks: unknown[] = Array.isArray(parsed) ? parsed : [];
+  return parsedLinks.flatMap((link): GuestSocialLink[] => {
+    if (typeof link === "string") {
+      return link.trim() ? [{ platform: "Link", url: link.trim() }] : [];
+    }
+    if (!link || typeof link !== "object") return [];
+    const record = link as Record<string, unknown>;
+    if (typeof record.url !== "string") return [];
+    return [{
+      platform: typeof record.platform === "string" ? record.platform : "Link",
+      url: record.url.trim(),
+    }].filter((item) => item.url);
+  });
+}
 
 const guestSections = [
   { key: "Chief Guest", label: "Chief Guest" },
@@ -21,6 +71,7 @@ export default function GuestsClient() {
   const [guests, setGuests] = useState<GuestRecord[]>([]);
   const [selectedGuest, setSelectedGuest] = useState<GuestRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const selectedGuestSocialLinks = selectedGuest ? normalizeSocialLinks(selectedGuest.socialLinks) : [];
 
   useEffect(() => {
     fetch("/api/guests")
@@ -65,7 +116,7 @@ export default function GuestsClient() {
                       {sectionGuests.map((guest, index) => (
                         <motion.button type="button" key={guest.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.4, delay: (index % 4) * 0.06 }} onClick={() => setSelectedGuest(guest)} className="group relative mx-auto h-[19rem] w-full max-w-[16rem] cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-left text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-[21rem] sm:max-w-[17rem] md:h-[22rem] md:max-w-[18rem] lg:h-[24rem]">
                           <Image src={guest.image} alt={guest.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="absolute inset-0 h-full w-full object-cover grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-100 transition-opacity duration-500 group-hover:opacity-0" />
                           <ArrowUpRight className="absolute right-3 top-3 z-20 h-4 w-4 text-[#EB0028] opacity-0 transition-opacity group-hover:opacity-100" />
                         </motion.button>
                       ))}
@@ -79,7 +130,7 @@ export default function GuestsClient() {
       </section>
       <AnimatePresence>
         {selectedGuest && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedGuest(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" /><motion.div initial={{ opacity: 0, scale: 0.95, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 15 }} className="relative z-10 max-h-[85vh] w-full max-w-2xl overflow-y-auto border border-neutral-800 bg-neutral-900 p-5 text-white shadow-2xl sm:p-8"><button type="button" onClick={() => setSelectedGuest(null)} aria-label="Close guest details" className="absolute right-4 top-4 text-neutral-400 transition-colors hover:text-white"><X className="h-5 w-5" /></button><div className="flex flex-col items-start gap-6 sm:flex-row"><div className="relative aspect-square w-full shrink-0 overflow-hidden border border-neutral-800 bg-neutral-950 sm:w-44"><Image src={selectedGuest.image} alt={selectedGuest.name} fill className="object-cover" /></div><div><span className="font-mono text-xs font-bold uppercase tracking-widest text-[#EB0028]">TEDxSMIU Guest</span><h2 className="mt-1 font-display text-2xl font-black uppercase text-white sm:text-3xl">{selectedGuest.name}</h2><p className="mt-1 text-sm text-neutral-300">{selectedGuest.title}</p></div></div><div className="mt-6 border-t border-neutral-800 pt-6"><h4 className="mb-2 font-mono text-xs uppercase tracking-wider text-neutral-400">About the guest</h4><p className="whitespace-pre-line text-sm leading-relaxed text-neutral-300">{selectedGuest.bio || "Guest biography details will be updated soon."}</p></div></motion.div></div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedGuest(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" /><motion.div initial={{ opacity: 0, scale: 0.95, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 15 }} className="relative z-10 max-h-[85vh] w-full max-w-2xl overflow-y-auto border border-neutral-800 bg-neutral-900 p-5 text-white shadow-2xl sm:p-8"><button type="button" onClick={() => setSelectedGuest(null)} aria-label="Close guest details" className="absolute right-4 top-4 text-neutral-400 transition-colors hover:text-white"><X className="h-5 w-5" /></button><div className="flex flex-col items-start gap-6 sm:flex-row"><div className="relative aspect-square w-full shrink-0 overflow-hidden border border-neutral-800 bg-neutral-950 sm:w-44"><Image src={selectedGuest.image} alt={selectedGuest.name} fill className="object-cover" /></div><div><span className="font-mono text-xs font-bold uppercase tracking-widest text-[#EB0028]">TEDxSMIU Guest</span><h2 className="mt-1 font-display text-2xl font-black uppercase text-white sm:text-3xl">{selectedGuest.name}</h2><p className="mt-1 text-sm text-neutral-300">{selectedGuest.title}</p>{selectedGuestSocialLinks.length > 0 && <div className="mt-4 flex flex-nowrap items-center gap-3">{selectedGuestSocialLinks.map((link, index) => { const isEmail = link.platform.toLowerCase() === "email"; return <a key={`${link.platform}-${index}`} href={isEmail && !link.url.startsWith("mailto:") ? `mailto:${link.url}` : link.url} target={isEmail ? undefined : "_blank"} rel={isEmail ? undefined : "noopener noreferrer"} aria-label={link.platform} title={link.platform} className="text-neutral-400 transition-all duration-200 hover:scale-110 hover:text-[#EB0028]"><SocialPlatformIcon platform={link.platform} /></a>; })}</div>}</div></div><div className="mt-6 border-t border-neutral-800 pt-6"><h4 className="mb-2 font-mono text-xs uppercase tracking-wider text-neutral-400">About the guest</h4><p className="whitespace-pre-line text-sm leading-relaxed text-neutral-300">{selectedGuest.bio || "Guest biography details will be updated soon."}</p></div></motion.div></div>
         )}
       </AnimatePresence>
     </PageShell>

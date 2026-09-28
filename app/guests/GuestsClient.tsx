@@ -114,11 +114,30 @@ export default function GuestsClient() {
                     </div>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                       {sectionGuests.map((guest, index) => (
-                        <motion.button type="button" key={guest.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.4, delay: (index % 4) * 0.06 }} onClick={() => setSelectedGuest(guest)} className="group relative mx-auto h-[19rem] w-full max-w-[16rem] cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-left text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-[21rem] sm:max-w-[17rem] md:h-[22rem] md:max-w-[18rem] lg:h-[24rem]">
-                          <Image src={guest.image} alt={guest.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="absolute inset-0 h-full w-full object-cover grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-100 transition-opacity duration-500 group-hover:opacity-0" />
-                          <ArrowUpRight className="absolute right-3 top-3 z-20 h-4 w-4 text-[#EB0028] opacity-0 transition-opacity group-hover:opacity-100" />
-                        </motion.button>
+                        <motion.button
+                        type="button"
+                        key={guest.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.15 }}
+                        transition={{ duration: 0.4, delay: (index % 4) * 0.06 }}
+                        onClick={() => setSelectedGuest(guest)}
+                        className="group relative mx-auto h-[19rem] w-full max-w-[16rem] cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-left text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-[21rem] sm:max-w-[17rem] md:h-[22rem] md:max-w-[18rem] lg:h-[24rem]"
+                      >
+                        <Image
+                          src={guest.image}
+                          alt={guest.name}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          className="touch-normal-image absolute inset-0 h-full w-full object-cover grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100"
+                        />
+
+                        <div className="touch-no-overlay absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-100 transition-opacity duration-500 group-hover:opacity-0" />
+
+                        <ArrowUpRight
+                          className="absolute right-3 top-3 z-20 h-4 w-4 text-[#EB0028] opacity-0 transition-opacity group-hover:opacity-100"
+                        />
+                      </motion.button>
                       ))}
                     </div>
                   </div>

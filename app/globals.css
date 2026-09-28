@@ -143,6 +143,21 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* Mobile / Touch Devices */
+@media (hover: none) and (pointer: coarse) {
+  .touch-no-overlay {
+    opacity: 0 !important;
+  }
+
+  .touch-normal-image {
+    filter: none !important;
+    transform: none !important;
+  }
+  .touch-show {
+    opacity: 1 !important;
+  }
+}
+
 .font-mono {
   font-family: var(--font-mono);
 }

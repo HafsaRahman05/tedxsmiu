@@ -5,13 +5,11 @@ import {
   FaFacebook, 
   FaLinkedin, 
   FaYoutube, 
-  FaXTwitter 
 } from 'react-icons/fa6';
 
 const SOCIALS = [
-  { name: "Instagram", href: "https://www.instagram.com/tedxsmiu/", icon: FaInstagram },
+  { name: "Instagram", href: "https://www.instagram.com/tedxsmiuofficial/", icon: FaInstagram },
   { name: "LinkedIn", href: "https://www.linkedin.com/company/tedxsmiuofficial/", icon: FaLinkedin },
-  { name: "X", href: "https://x.com/tedxsmiu", icon: FaXTwitter },
   { name: "YouTube", href: "https://www.youtube.com/@TEDxSMIU-e5m", icon: FaYoutube },
   { name: "Facebook", href: "https://www.facebook.com/tedxsmiuofficial", icon: FaFacebook },
 ];

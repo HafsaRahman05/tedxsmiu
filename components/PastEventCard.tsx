@@ -52,9 +52,9 @@ export default function PastEventCard({
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             unoptimized={safeImage.includes("cdn-s2.toolzu.com")}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale contrast-125 group-hover:grayscale-50"
+            className="touch-normal-image h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale contrast-125 group-hover:grayscale-50"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent opacity-80" />
+          <div className="touch-no-overlay absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent opacity-80" />
 
           {/* Status Badge */}
           <div className="absolute top-3 left-3">

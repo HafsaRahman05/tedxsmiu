@@ -27,12 +27,12 @@ export default function EventCard() {
             </span>
             <span className="text-neutral-500 font-mono text-xs hidden sm:inline">•</span>
             <span className="font-mono text-[10px] sm:text-xs uppercase tracking-widest text-neutral-400">
-              Convergence 2026
+              Conference 2026
             </span>
           </div>
 
           <h3 className="mt-3 font-helvetica text-2xl sm:text-3xl md:text-4xl tracking-tight text-white leading-tight">
-            <span className="font-black text-primary">TEDx</span>SMIU — Convergence
+            <span className="font-black text-primary">TEDx</span>SMIU — Conference
           </h3>
 
           <p className="mt-3 text-xs sm:text-sm md:text-base text-neutral-300 max-w-xl leading-relaxed">
@@ -65,7 +65,7 @@ export default function EventCard() {
               Announced
             </div>
             <div className="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-primary mt-2">
-              Convergence 2026
+              Conference 2026
             </div>
             <div className="mt-2 text-[11px] sm:text-xs text-neutral-300 font-mono">
               Main Auditorium • Sindh Madressatul Islam University, Karachi

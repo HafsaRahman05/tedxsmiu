@@ -21,60 +21,64 @@ interface Leader {
 
 const DEFAULT_LEADERSHIP: Leader[] = [
   {
-    id: "vc",
-    roleTitle: "Vice Chancellor",
-    category: "VC",
-    name: "Prof. Dr. Mujeeb-U-Ddin Sahrai Memon",
-    designation: "Vice Chancellor",
-    institution: "Sindh Madressatul Islam University",
-    bio: "Championing academic excellence, research innovation, and institutional stewardship at SMIU.",
-    imageUrl: "/images/team/vc.jpg",
-    sortOrder: 1,
-  },
-  {
-    id: "patron",
-    roleTitle: "Patron",
-    category: "PATRON",
-    name: "Wafa Mansoor Buriro",
-    designation: "Academic Patron & Advisor",
-    institution: "Sindh Madressatul Islam University",
-    bio: "Providing institutional mentorship, faculty guidance, and strategic support for TEDxSMIU.",
-    imageUrl: "/images/team/patron.jpg",
-    sortOrder: 2,
-  },
-  {
-    id: "licensee",
-    roleTitle: "Licensee",
-    category: "LICENSEE",
-    name: "Asad Ullah",
-    designation: "TEDx Licensee",
-    institution: "TEDxSMIU",
-    bio: "Holding the official license from TED Conferences, maintaining curatorial standards and brand integrity.",
-    imageUrl: "/images/team/licensee.jpg",
-    sortOrder: 3,
-  },
-  {
-    id: "lead",
-    roleTitle: "Lead Organizer",
-    category: "LEAD",
-    name: "Ali Mehdi Abro",
-    designation: "TEDxSMIU Lead Organizer",
-    institution: "TEDxSMIU Organizing Committee",
-    bio: "Spearheading executive production, volunteer operations, speaker relations, and community outreach.",
-    imageUrl: "/images/team/lead.jpg",
-    sortOrder: 4,
-  },
-  {
-    id: "lead1",
-    roleTitle: "Lead Organizer",
-    category: "LEAD",
-    name: "Hasnain Ali",
-    designation: "TEDxSMIU Lead Organizer",
-    institution: "TEDxSMIU Organizing Committee",
-    bio: "Spearheading executive production, volunteer operations, speaker relations, and community outreach.",
-    imageUrl: "/images/team/lead.jpg",
-    sortOrder: 5,
-  },
+  id: "leadership-mujeebuddin-sahrai-memon",
+  roleTitle: "Vice Chancellor, Sindh Madressatul Islam University",
+  category: "CHIEF",
+  name: "Prof. Dr. Mujeebuddin Sahrai Memon",
+  designation: "Vice Chancellor",
+  institution: "Sindh Madressatul Islam University",
+  bio: "Prof. Dr. Mujeebuddin Sahrai Memon, Vice Chancellor of SMIU, is leading one of South Asia's oldest institutions and the alma mater of Quaid-e-Azam Mohammad Ali Jinnah, the founder of Pakistan. With over 32 years of academic and administrative experience, including two tenures as Vice Chancellor of Sindh Agriculture University and recognition as HEC's Best University Teacher, his leadership has shaped institutions across Sindh. His continued support and belief in student-led initiatives like TEDxSMIU have been instrumental in bringing this vision to life, and we are deeply grateful for his guidance.",
+  imageUrl: "https://res.cloudinary.com/rhgtzwu8/image/upload/v1790916831/vc.png",
+  sortOrder: 1,
+},
+
+{
+  id: "leadership-wafa-mansoor-buriro",
+  roleTitle: "Patron, TEDxSMIU 2.0 | Assistant Professor, SMIU",
+  category: "CHIEF",
+  name: "Wafa Mansoor Buriro",
+  designation: "Patron",
+  institution: "Sindh Madressatul Islam University",
+  bio: "Behind every idea that takes the TEDxSMIU stage is the quiet guidance of our Patron, Wafa Mansoor. An Assistant Professor at SMIU and a Pak-US Exchange Alumnus, with profound expertise in Linguistics and English Language Teaching, he has a rare gift for turning complex ideas into clarity and direction. His mentorship shapes the vision and spirit that carries TEDxSMIU 2.0 forward, and we are deeply grateful for his unwavering support.",
+  imageUrl: "https://res.cloudinary.com/rhgtzwu8/image/upload/v1790916848/sir_wafa.png",
+  sortOrder: 2,
+},
+
+{
+  id: "leadership-asadullah",
+  roleTitle: "License Holder & Organizer, TEDxSMIU 2.0",
+  category: "LEAD",
+  name: "Asadullah",
+  designation: "License Holder & Organizer",
+  institution: "TEDxSMIU",
+  bio: "Asadullah holds the official TEDx license and serves as Organizer of TEDxSMIU 2.0, carrying the responsibility that makes the entire event possible under TED's name, a role built on trust, leadership, and accountability. With prior leadership experience in the Literary Society, he led teams and organized multiple events, taking ideas from planning through to execution. Today, he brings that same leadership to TEDxSMIU 2.0, coordinating people and shaping the event's direction, anchoring the foundation TEDxSMIU stands on and turning a license into a platform for ideas and impact.",
+  imageUrl: "https://res.cloudinary.com/rhgtzwu8/image/upload/v1790620537/asadullah.png",
+  sortOrder: 3,
+},
+
+{
+  id: "leadership-ali-mehdi-abro",
+  roleTitle: "Lead Organizer, TEDxSMIU",
+  category: "LEAD",
+  name: "Ali Mehdi Abro",
+  designation: "Lead Organizer",
+  institution: "TEDxSMIU",
+  bio: "Ali Mehdi Abro leads TEDxSMIU 2.0, steering an 80+ member organization across 12 departments with the same instinct for people and purpose that has defined his journey so far, from a cybersecurity background to leading the SMIU Literary Society as President, and working behind the scenes with TEDxClifton and KhiNext'26. Under his direction, every department moves like one, shaped by a single vision he's determined to see through. What sets him apart isn't the ability to manage scale, it's the discipline to turn that vision into an event this university will remember.",
+  imageUrl: "https://res.cloudinary.com/rhgtzwu8/image/upload/v1790916853/ali_mehdi.png",
+  sortOrder: 4,
+},
+
+{
+  id: "leadership-hasnain-ali",
+  roleTitle: "Co-Lead Organizer, TEDxSMIU 2.0",
+  category: "LEAD",
+  name: "Hasnain Ali",
+  designation: "Co-Lead Organizer",
+  institution: "TEDxSMIU",
+  bio: "Hasnain Ali serves as Co-Lead Organizer of TEDxSMIU 2.0, contributing to the vision, planning, and execution of the event, from speakers and guests to volunteers and on-ground operations. With a foundation in Software Engineering and Cybersecurity, he approaches challenges with structure and precision, an ability sharpened further through his experience in student-led leadership, coordinating diverse teams and turning ideas into purposeful experiences. Beyond the logistics, Hasnain sees TEDxSMIU as a platform built around people and ideas, driven by the ambition to create a space where compelling perspectives are heard and conversations continue to resonate long after the event ends.",
+  imageUrl: "https://res.cloudinary.com/rhgtzwu8/image/upload/v1790916862/kasnain_ali.png",
+  sortOrder: 5,
+},
 ];
 
 export default function LeadershipSection() {
@@ -198,12 +202,6 @@ export default function LeadershipSection() {
                       onClick={() => setSelectedLeader(leader)}
                       className="group relative flex flex-col sm:flex-row h-auto sm:h-[22rem] w-full overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-[#180507] via-[#0d0d0d] to-[#080808] text-white shadow-[0_0_20px_rgba(235,0,40,0.12)] transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[0_0_35px_rgba(235,0,40,0.3)]"
                     >
-                      <div className="absolute top-3 left-3 z-30 flex items-center gap-1.5 rounded-full border border-primary/50 bg-primary/20 px-3 py-1 backdrop-blur-md">
-                        <Sparkles className="h-3 w-3 text-primary animate-pulse" />
-                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-                          {leader.roleTitle}
-                        </span>
-                      </div>
 
                       <div className="relative h-[18rem] sm:h-full sm:w-1/2 shrink-0 overflow-hidden">
                         <Image
@@ -218,21 +216,27 @@ export default function LeadershipSection() {
 
                       <div className="relative z-10 flex flex-1 flex-col justify-between p-6 text-left">
                         <div>
-                          <div className="flex justify-between items-start">
+                          {/* <div className="flex justify-between items-start">
                             <span className="font-mono text-[10px] uppercase tracking-widest text-primary/80">
                               {leader.institution}
                             </span>
                             <ArrowUpRight className="h-5 w-5 text-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                          </div>
+                          </div> */}
                           <h3 className="mt-3 text-xl font-extrabold text-white sm:text-2xl leading-snug">
                             {leader.name}
                           </h3>
-                          <p className="mt-1 text-xs font-semibold text-neutral-300">
-                            {leader.designation}
-                          </p>
+                           <span className="font-extrabold text-[11px] font-bold uppercase tracking-[0.1em] text-primary/89">
+                              {leader.roleTitle}
+                            </span>
+                          {/* <div className="absolute  z-30 flex items-center gap-1.5 px-3 py-1 backdrop-blur-md">
+                            <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
+                              {leader.roleTitle}
+                            </span>
+                          </div> */}
                         </div>
 
-                        <p className="mt-4 line-clamp-3 text-xs leading-relaxed text-neutral-400">
+                        <p className="mt-4  text-xs leading-relaxed text-neutral-400">
                           {leader.bio}
                         </p>
                       </div>
@@ -271,18 +275,16 @@ export default function LeadershipSection() {
                           alt={leader.name}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="absolute inset-0 h-full w-full object-cover grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100"
+                          className="absolute inset-0 h-full w-full object-cover transition-all duration-500 [@media(hover:hover)]:grayscale [@media(hover:hover)]:brightness-85 [@media(hover:hover)]:group-hover:scale-105 [@media(hover:hover)]:group-hover:grayscale-0 [@media(hover:hover)]:group-hover:brightness-100"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-500 [@media(hover:hover)]:group-hover:opacity-0 [@media(hover:none)]:hidden" />
 
                         <div className="absolute top-3 right-3 z-20 opacity-0 transition-all duration-300 group-hover:opacity-100">
                           <ArrowUpRight className="h-4 w-4 stroke-[2.5] text-[#EB0028] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
                         </div>
 
-                        <div className="absolute top-3 left-3 z-20 rounded-full border border-primary/40 bg-ink/80 px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-primary backdrop-blur-md">
-                          {leader.roleTitle}
-                        </div>
-
+                        
+{/* 
                         <div className="relative z-10 flex h-full flex-col justify-end p-5 text-left">
                           <div className="transition-transform duration-300 ease-out group-hover:-translate-y-1">
                             <h3 className="mt-1 text-lg font-bold text-white sm:text-xl">
@@ -290,7 +292,7 @@ export default function LeadershipSection() {
                             </h3>
                             <p className="text-xs text-neutral-300">{leader.designation}</p>
                           </div>
-                        </div>
+                        </div> */}
                       </motion.button>
                     );
                   })}

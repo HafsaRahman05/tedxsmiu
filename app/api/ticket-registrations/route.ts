@@ -4,6 +4,25 @@ import { v2 as cloudinary } from "cloudinary";
 import { db } from "@/lib/db";
 import { attendeeRegistrations } from "@/lib/db/schema";
 
+function escapeHtml(str: string): string {
+  return str.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#39;";
+      default:
+        return char;
+    }
+  });
+}
+
 const MAX_RECEIPT_SIZE = 10 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
@@ -90,17 +109,17 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             from: process.env.RESEND_FROM_EMAIL,
             to: [process.env.ADMIN_NOTIFICATION_EMAIL],
-            subject: `New ticket registration: ${fullName}`,
+            subject: `New ticket registration: ${fullName.replace(/[\r\n]/g, " ")}`,
             html: `
               <h2>New TEDxSMIU ticket registration</h2>
-              <p><strong>Name:</strong> ${fullName}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Phone:</strong> ${phone}</p>
-              <p><strong>CNIC:</strong> ${cnic}</p>
-              <p><strong>Payment method:</strong> ${paymentMethod}</p>
-              <p><strong>Transaction ID:</strong> ${transactionId}</p>
+              <p><strong>Name:</strong> ${escapeHtml(fullName)}</p>
+              <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+              <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
+              <p><strong>CNIC:</strong> ${escapeHtml(cnic)}</p>
+              <p><strong>Payment method:</strong> ${escapeHtml(paymentMethod)}</p>
+              <p><strong>Transaction ID:</strong> ${escapeHtml(transactionId)}</p>
               <p><strong>Receipt:</strong> <a href="${uploadResult.secure_url}">View receipt</a></p>
-              <p><strong>Registration ID:</strong> ${registration.id}</p>
+              <p><strong>Registration ID:</strong> ${escapeHtml(registration.id)}</p>
             `,
           }),
         });

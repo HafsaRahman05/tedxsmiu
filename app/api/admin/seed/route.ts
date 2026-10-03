@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
-import { count } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -39,14 +39,25 @@ export async function GET(request: NextRequest) {
     const adminName = "TEDxSMIU Admin";
 
     // Register initial admin user via Better Auth
-    await auth.api.signUpEmail({
+    const signUpResult = await auth.api.signUpEmail({
       body: {
         email: adminEmail,
         password: adminPassword,
         name: adminName,
-        role: "SUPER_ADMIN",
       },
     });
+
+    if (signUpResult?.user?.id) {
+      await db
+        .update(user)
+        .set({ role: "SUPER_ADMIN" })
+        .where(eq(user.id, signUpResult.user.id));
+    } else {
+      await db
+        .update(user)
+        .set({ role: "SUPER_ADMIN" })
+        .where(eq(user.email, adminEmail));
+    }
 
     return NextResponse.json({
       success: true,

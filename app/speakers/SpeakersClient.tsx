@@ -88,6 +88,28 @@ const normalizeImageSrc = (src: string) => {
   }
 };
 
+async function readApiResponse(response: Response, endpoint: string): Promise<unknown> {
+  const body = await response.text();
+  let data: unknown;
+
+  try {
+    data = JSON.parse(body);
+  } catch {
+    const contentType = response.headers.get("content-type") || "unknown content type";
+    throw new Error(`${endpoint} returned a non-JSON response (HTTP ${response.status}, ${contentType}).`);
+  }
+
+  if (!response.ok) {
+    const message =
+      data && typeof data === "object" && "error" in data && typeof data.error === "string"
+        ? data.error
+        : `HTTP ${response.status}`;
+    throw new Error(`${endpoint} request failed: ${message}`);
+  }
+
+  return data;
+}
+
 export default function SpeakersClient() {
   const [speakers, setSpeakers] = useState<ExtendedSpeaker[]>([]);
   const [events, setEvents] = useState<any[]>([]);
@@ -102,10 +124,16 @@ export default function SpeakersClient() {
       fetch("/api/events"),
     ])
       .then(async ([speakerRes, eventRes]) => {
-        const speakerData = await speakerRes.json();
-        const eventData = await eventRes.json();
+        const [speakerData, eventData] = await Promise.all([
+          readApiResponse(speakerRes, "/api/speakers"),
+          readApiResponse(eventRes, "/api/events"),
+        ]);
 
-        setSpeakers(speakerData.speakers || []);
+        if (!speakerData || typeof speakerData !== "object" || !("speakers" in speakerData)) {
+          throw new Error("/api/speakers returned an invalid response.");
+        }
+
+        setSpeakers(Array.isArray(speakerData.speakers) ? speakerData.speakers : []);
         setEvents(Array.isArray(eventData) ? eventData : []);
       })
       .catch((err) => console.error(err))

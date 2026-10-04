@@ -34,11 +34,11 @@ export default function Home() {
         <Hero />
 
         {/* 2. Flagship Event Spotlight & Next Edition Status */}
-        <section id="event" className="relative z-10 border-b border-white/10 px-6 lg:px-12 py-20 sm:py-24">
+        {/* <section id="event" className="relative z-10 border-b border-white/10 px-6 lg:px-12 py-20 sm:py-24">
           <div className="max-w-7xl mx-auto">
             <EventCard />
           </div>
-        </section>
+        </section> */}
 
         {/* 3. What is TED & TEDx Section */}
         <TedIntroSection />

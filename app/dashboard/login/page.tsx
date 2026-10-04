@@ -9,7 +9,7 @@ import { authClient } from "@/lib/auth-client";
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const from = params.get("from") || "/dashboard";
+  const from = params.get("from") || "/admin";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -71,7 +71,7 @@ export default async function EventsPage() {
       />
 
       {/* 1. Announced Event Spotlight */}
-      <section className="bg-ink px-4 sm:px-6 py-8 sm:py-20 lg:px-12">
+      {/* <section className="bg-ink px-4 sm:px-6 py-8 sm:py-20 lg:px-12">
         <div className="mx-auto max-w-7xl">
           <div className="border border-white/15 bg-surface p-6 sm:p-10 lg:p-12 relative overflow-hidden shadow-2xl">
             <div
@@ -100,7 +100,6 @@ export default async function EventsPage() {
                   A full day of talks, installations, and conversation exploring where human ideas are headed next. Join a curated gathering of thinkers, builders, and changemakers at the heart of SMIU.
                 </p>
 
-               {/* Key Event Highlights Matrix */}
           <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3 max-w-lg font-mono">
             <div className="border border-white/10 bg-ink p-2.5 sm:p-3 text-center">
               <span className="block text-lg sm:text-2xl font-black text-white">11</span>
@@ -153,7 +152,7 @@ export default async function EventsPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 2. Past Flagship Events Archive */}
       <section className="px-4 sm:px-6 py-2 lg:px-12 text-white">

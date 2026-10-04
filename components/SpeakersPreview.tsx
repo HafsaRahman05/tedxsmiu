@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Globe, X } from "lucide-react";
+import { ArrowUpRight, Globe, X } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import type { Speaker } from "@/types";
 import { cleanImageUrl } from "@/lib/utils";
@@ -45,7 +45,9 @@ export default function SpeakersPreview() {
   const [speakersList, setSpeakersList] = useState<Speaker[]>([]);
   const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasScrolledGallery, setHasScrolledGallery] = useState(false);
+  const [marquee, setMarquee] = useState({ copies: 2, distance: 0 });
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const firstSetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/speakers")
@@ -79,6 +81,34 @@ export default function SpeakersPreview() {
       });
   }, []);
 
+  useEffect(() => {
+    if (loading || speakersList.length < 2) {
+      setMarquee({ copies: 1, distance: 0 });
+      return;
+    }
+
+    const viewport = galleryRef.current;
+    const firstSet = firstSetRef.current;
+    if (!viewport || !firstSet) return;
+
+    const updateMarquee = () => {
+      const distance = firstSet.getBoundingClientRect().width;
+      const viewportWidth = viewport.clientWidth;
+      if (!distance || !viewportWidth) return;
+
+      setMarquee({
+        copies: Math.max(2, Math.ceil(viewportWidth / distance) + 1),
+        distance,
+      });
+    };
+
+    updateMarquee();
+    const observer = new ResizeObserver(updateMarquee);
+    observer.observe(viewport);
+    observer.observe(firstSet);
+    return () => observer.disconnect();
+  }, [loading, speakersList.length]);
+
   return (
     <section id="speakers" className="relative border-b border-white/10 bg-ink px-4 sm:px-6 py-16 sm:py-24 lg:px-12 lg:py-28">
       <div className="mx-auto w-full max-w-7xl">
@@ -107,62 +137,74 @@ export default function SpeakersPreview() {
         {/* Horizontal editorial speaker gallery */}
         <div className="relative mt-8 sm:mt-12">
           <div
-            onScroll={(event) => {
-              if (event.currentTarget.scrollLeft > 8) setHasScrolledGallery(true);
-            }}
-            className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-4 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-6"
+            ref={galleryRef}
+            role="region"
+            aria-label="Featured speakers"
+            className="speaker-marquee-viewport overflow-hidden pb-4"
           >
           {loading
-            ? Array.from({ length: 6 }).map((_, i) => (
+            ? <div className="flex gap-4 sm:gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-[19rem] w-[16rem] shrink-0 snap-start animate-pulse border border-white/10 bg-surface sm:h-[21rem] sm:w-[17rem] md:h-[22rem] md:w-[18rem] lg:h-[24rem]"
+                  className="h-[19rem] w-[16rem] shrink-0 animate-pulse border border-white/10 bg-surface sm:h-[21rem] sm:w-[17rem] md:h-[22rem] md:w-[18rem] lg:h-[24rem]"
                 />
-              ))
-            : speakersList.map((speaker, idx) => {
-                const safeImage = cleanImageUrl(speaker.image, SPEAKER_FALLBACK_IMAGE);
-                return (
-                  <motion.button
-                    type="button"
-                    key={speaker.id || idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: (idx % 6) * 0.06 }}
-                    onClick={() => setSelectedSpeaker(speaker)}
-                    className="group relative h-[19rem] w-[16rem] shrink-0 snap-start cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-[21rem] sm:w-[17rem] md:h-[22rem] md:w-[18rem] lg:h-[24rem]"
-                  >
-                    <Image
-                      src={safeImage}
-                      alt={speaker.name}
-                      fill
-                      priority={idx < 4}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="touch-normal-image absolute inset-0 h-full w-full object-cover grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100"
-                    />
-                    <div className="absolute top-3 right-3 z-20 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                      <ArrowUpRight className="h-4 w-4 stroke-[2.5] text-[#EB0028] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
-                    </div>
-                      <div className="relative z-10 flex h-full flex-col justify-end p-4 text-left sm:p-5">
-                      <div className="transition-transform duration-300 ease-out group-hover:-translate-y-2">
-                        {/* <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#EB0028] sm:text-xs">
-                          {speaker.tags?.[0] || "Speaker"}
-                        </span> */}
-                        <h3 className="mt-1 text-lg font-bold text-white sm:text-xl">{speaker.name}</h3>
-                        <p className="text-xs text-gray-200 sm:text-sm">{speaker.title}</p>
-                      </div>
-                    </div>
-                  </motion.button>
-                );
-              })}
-          </div>
-          {!loading && speakersList.length > 1 && !hasScrolledGallery && (
-            <div aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-0.5 px-2 py-1 text-[9px] font-mono uppercase text-white/70">
-              <ArrowRight className="h-3 w-3" />
-              <span>Swipe Left</span>
-              
+              ))}
             </div>
-          )}
+            : (
+              <div
+                className={`speaker-marquee-track${selectedSpeaker ? " is-paused" : ""}`}
+                style={{
+                  "--speaker-marquee-distance": `${-marquee.distance}px`,
+                  "--speaker-marquee-duration": `${Math.max(marquee.distance / 40, 12)}s`,
+                } as CSSProperties}
+              >
+                {Array.from({ length: marquee.copies }, (_, copyIndex) => (
+                  <div
+                    key={copyIndex}
+                    ref={copyIndex === 0 ? firstSetRef : undefined}
+                    aria-hidden={copyIndex > 0 || undefined}
+                    className="speaker-marquee-copy flex shrink-0 gap-4 pr-4 sm:gap-6 sm:pr-6"
+                  >
+                    {speakersList.map((speaker, idx) => {
+                      const safeImage = cleanImageUrl(speaker.image, SPEAKER_FALLBACK_IMAGE);
+                      return (
+                        <motion.button
+                          type="button"
+                          key={`${copyIndex}-${speaker.id || idx}`}
+                          tabIndex={copyIndex === 0 ? undefined : -1}
+                          initial={copyIndex === 0 ? { opacity: 0, y: 20 } : false}
+                          whileInView={copyIndex === 0 ? { opacity: 1, y: 0 } : undefined}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.4, delay: (idx % 6) * 0.06 }}
+                          onClick={() => setSelectedSpeaker(speaker)}
+                          className="group relative h-[19rem] w-[16rem] shrink-0 cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-[21rem] sm:w-[17rem] md:h-[22rem] md:w-[18rem] lg:h-[24rem]"
+                        >
+                          <Image
+                            src={safeImage}
+                            alt={speaker.name}
+                            fill
+                            priority={copyIndex === 0 && idx < 4}
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            className="touch-normal-image absolute inset-0 h-full w-full object-cover grayscale brightness-75 transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100"
+                          />
+                          <div className="absolute top-3 right-3 z-20 opacity-0 transition-all duration-300 group-hover:opacity-100">
+                            <ArrowUpRight className="h-4 w-4 stroke-[2.5] text-[#EB0028] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
+                          </div>
+                          <div className="relative z-10 flex h-full flex-col justify-end p-4 text-left sm:p-5">
+                            <div className="transition-transform duration-300 ease-out group-hover:-translate-y-2">
+                              <h3 className="mt-1 text-lg font-bold text-white sm:text-xl">{speaker.name}</h3>
+                              <p className="text-xs text-gray-200 sm:text-sm">{speaker.title}</p>
+                            </div>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
       </div>

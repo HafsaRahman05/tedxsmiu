@@ -114,7 +114,7 @@ export default function SpeakersPreview() {
       <div className="mx-auto w-full max-w-7xl">
         
         {/* Section Header */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between border-b border-white/10 pb-6 sm:pb-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between pb-6 sm:pb-8">
           <div>
             <span className="font-mono text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary">
               The Voice of TEDxSMIU
@@ -147,7 +147,7 @@ export default function SpeakersPreview() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-[19rem] w-[16rem] shrink-0 animate-pulse border border-white/10 bg-surface sm:h-[21rem] sm:w-[17rem] md:h-[22rem] md:w-[18rem] lg:h-[24rem]"
+                  className="h-[15rem] w-[12rem] shrink-0 animate-pulse border border-white/10 bg-surface sm:h-64 sm:w-[13rem] md:h-[17rem] md:w-56 lg:h-[18rem] lg:w-[15rem]"
                 />
               ))}
             </div>
@@ -178,7 +178,7 @@ export default function SpeakersPreview() {
                           viewport={{ once: true }}
                           transition={{ duration: 0.4, delay: (idx % 6) * 0.06 }}
                           onClick={() => setSelectedSpeaker(speaker)}
-                          className="group relative h-[19rem] w-[16rem] shrink-0 cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-[21rem] sm:w-[17rem] md:h-[22rem] md:w-[18rem] lg:h-[24rem]"
+                          className="group relative h-[15rem] w-[12rem] shrink-0 cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-64 sm:w-[13rem] md:h-[17rem] md:w-56 lg:h-[18rem] lg:w-[15rem]"
                         >
                           <Image
                             src={safeImage}
@@ -193,8 +193,8 @@ export default function SpeakersPreview() {
                           </div>
                           <div className="relative z-10 flex h-full flex-col justify-end p-4 text-left sm:p-5">
                             <div className="transition-transform duration-300 ease-out group-hover:-translate-y-2">
-                              <h3 className="mt-1 text-lg font-bold text-white sm:text-xl">{speaker.name}</h3>
-                              <p className="text-xs text-gray-200 sm:text-sm">{speaker.title}</p>
+                              <h3 className="mt-1 text-base font-bold text-white sm:text-lg">{speaker.name}</h3>
+                              <p className="text-[11px] text-gray-200 sm:text-xs">{speaker.title}</p>
                             </div>
                           </div>
                         </motion.button>

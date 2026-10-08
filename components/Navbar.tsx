@@ -106,8 +106,8 @@ export default function Navbar() {
             asChild 
             className="rounded-none bg-primary text-white font-mono text-xs font-bold uppercase tracking-[0.15em] transition-all duration-300 hover:bg-white hover:text-black border border-primary px-5 xl:px-6 py-4 xl:py-5 shadow-lg active:scale-95"
           >
-            <Link href="/tickets">
-              Tickets
+            <Link href="/contact">
+              Contact us
             </Link>
           </Button>
         </div>

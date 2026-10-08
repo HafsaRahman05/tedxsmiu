@@ -2,9 +2,10 @@
 
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
-import { Users, Mic, Mail, Phone, MapPin, ArrowRight } from "lucide-react";
+import { Users, Mic, Mail, MapPin, ArrowRight, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa6";
 
 const CONTACT_INFO = [
   {
@@ -15,11 +16,16 @@ const CONTACT_INFO = [
     href: "mailto:tedxsmiuofficial@gmail.com",
   },
   {
-    title: "Phone & WhatsApp",
-    detail: "+92 309 2501412",
-    subtext: "Reach our organizing team by phone or WhatsApp",
-    icon: Phone,
-    href: "tel:+923092501412",
+    title: "Social Media",
+    detail: "Follow TEDxSMIU",
+    subtext: "Stay connected with our latest news, talks, and event updates",
+    icon: Share2,
+    socials: [
+      { name: "Instagram", href: "https://www.instagram.com/tedxsmiuofficial/", icon: FaInstagram },
+      { name: "LinkedIn", href: "https://www.linkedin.com/company/tedxsmiuofficial/", icon: FaLinkedinIn },
+      { name: "YouTube", href: "https://www.youtube.com/@TEDxSMIU-e5m", icon: FaYoutube },
+      { name: "Facebook", href: "https://www.facebook.com/tedxsmiuofficial", icon: FaFacebookF },
+    ],
   },
   {
     title: "Venue & Campus",
@@ -75,14 +81,8 @@ export default function ContactClient() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {CONTACT_INFO.map((info, idx) => {
               const IconComponent = info.icon;
-              return (
-                <a
-                  key={idx}
-                  href={info.href}
-                  target={info.href.startsWith("http") ? "_blank" : "_self"}
-                  rel="noreferrer"
-                  className="group relative flex flex-col justify-between rounded-none border border-border bg-card p-8 transition-all duration-300 hover:border-primary hover:bg-secondary"
-                >
+              const cardContent = (
+                <>
                   <div>
                     <div className="mb-6 inline-flex items-center justify-center border border-primary/30 bg-primary/10 p-3 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                       <IconComponent className="h-6 w-6" />
@@ -94,10 +94,50 @@ export default function ContactClient() {
                       {info.detail}
                     </p>
                   </div>
-                  <p className="mt-6 border-t border-border pt-4 font-sans text-xs text-muted-foreground leading-relaxed">
-                    {info.subtext}
-                  </p>
+                  {"socials" in info && info.socials ? (
+                    <div className="mt-6 flex gap-3 border-t border-border pt-4">
+                      {info.socials.map((social) => {
+                        const SocialIcon = social.icon;
+                        return (
+                          <a
+                            key={social.name}
+                            href={social.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Visit TEDxSMIU on ${social.name}`}
+                            title={social.name}
+                            className="inline-flex h-10 w-10 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                          >
+                            <SocialIcon className="h-4 w-4" />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="mt-6 border-t border-border pt-4 font-sans text-xs leading-relaxed text-muted-foreground">
+                      {info.subtext}
+                    </p>
+                  )}
+                </>
+              );
+
+              const cardClassName =
+                "group relative flex flex-col justify-between rounded-none border border-border bg-card p-8 transition-all duration-300 hover:border-primary hover:bg-secondary";
+
+              return "href" in info && typeof info.href === "string" ? (
+                <a
+                  key={idx}
+                  href={info.href}
+                  target={info.href.startsWith("http") ? "_blank" : "_self"}
+                  rel="noreferrer"
+                  className={cardClassName}
+                >
+                  {cardContent}
                 </a>
+              ) : (
+                <article key={idx} className={cardClassName}>
+                  {cardContent}
+                </article>
               );
             })}
           </div>

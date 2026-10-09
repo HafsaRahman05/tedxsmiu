@@ -70,7 +70,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Visit TEDxSMIU on ${s.name}`}
-                    className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center border border-white/10 bg-surface text-neutral-300 transition-all hover:border-primary hover:bg-primary hover:text-white"
+                    className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-neutral-300 transition-colors hover:text-primary"
                   >
                     <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </a>

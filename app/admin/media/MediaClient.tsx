@@ -349,9 +349,13 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                     type="text"
                     value={albumName}
                     onChange={(e) => setAlbumName(e.target.value)}
-                    placeholder="e.g. Backstage, Networking"
+                    placeholder="e.g. Main stage, Audience energy, Speakers & talks"
                     className="rounded-none border-border bg-background focus-visible:ring-primary"
                   />
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    This becomes a public gallery category. Reuse a name to group
+                    related photos and videos together.
+                  </p>
                 </div>
               </div>
 

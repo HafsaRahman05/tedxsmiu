@@ -210,6 +210,11 @@ export default function SpeakersClient() {
       .filter((section) => section.speakers.length > 0);
   }, [speakerSections, filter]);
 
+  useEffect(() => {
+    if (loading || !window.location.hash) return;
+    document.getElementById(decodeURIComponent(window.location.hash.slice(1)))?.scrollIntoView();
+  }, [filteredSections, loading]);
+
   return (
     <PageShell>
       <div className="relative overflow-hidden">
@@ -264,7 +269,11 @@ export default function SpeakersClient() {
                     </div>
                   ))
                 : filteredSections.map((section) => (
-                    <div key={section.id} className="space-y-6">
+                    <div
+                      key={section.id}
+                      id={`event-year-${section.year}`}
+                      className="space-y-6 scroll-mt-28"
+                    >
                       <div className="flex flex-col gap-2 border-b border-neutral-800 pb-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#EB0028]">

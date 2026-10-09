@@ -65,7 +65,7 @@ export default async function PartnersPage() {
       <section className="border-b border-white/10 bg-black px-6 py-20 lg:px-10">
         <div className="mx-auto max-w-6xl space-y-14">
           {partnerYears.map((year) => (
-            <div key={year} className="space-y-10">
+            <div key={year} id={`event-year-${year}`} className="space-y-10 scroll-mt-28">
               <div className="border-b border-white/10 pb-4">
                 <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#EB0028]">
                   Event Edition
@@ -137,7 +137,7 @@ export default async function PartnersPage() {
         </div>
       </section>
 
-      <section className="border-b border-white/10 bg-white/[0.02] px-6 py-20 lg:px-10">
+      {/* <section className="border-b border-white/10 bg-white/[0.02] px-6 py-20 lg:px-10">
         <div className="mx-auto flex max-w-4xl flex-col items-start gap-4">
           <h2 className="font-helvetica text-3xl font-black uppercase sm:text-4xl text-white">
             Interested in sponsoring next year&apos;s event?
@@ -153,7 +153,7 @@ export default async function PartnersPage() {
             Go to Partner Dashboard
           </Link>
         </div>
-      </section>
+      </section> */}
     </PageShell>
   );
 }

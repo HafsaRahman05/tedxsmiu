@@ -1,11 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Bell, Send } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { APPLICATIONS_OPEN } from "../application-status";
 
 export default function PartnerClient() {
+  if (!APPLICATIONS_OPEN) {
+    return (
+      <main className="min-h-screen bg-black pt-20 text-white">
+        <Navbar />
+        <div className="mx-auto max-w-4xl px-6 py-12 lg:px-10">
+          <Link
+            href="/contact"
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#EB0028] hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Contact
+          </Link>
+
+          <div className="mt-8">
+            <h1 className="mt-2 font-display text-4xl font-black uppercase text-white md:text-6xl">
+              Become a Partner
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-neutral-400 md:text-base">
+              Partnering with TEDxSMIU aligns your brand with innovation, leadership, and impactful ideas.
+            </p>
+          </div>
+
+          <div className="mt-12 rounded-none border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-md md:p-12">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[#EB0028]/30 bg-[#EB0028]/10 text-[#EB0028]">
+              <Bell className="h-6 w-6" />
+            </div>
+            <h2 className="mt-6 font-display text-2xl font-bold uppercase text-white md:text-3xl">
+              Applications Are Currently Closed
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg font-mono text-xs uppercase leading-relaxed tracking-wider text-neutral-400">
+              Partner applications are currently closed. Please check back later or contact us if you have any questions.
+            </p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-black pt-20 text-white">
       <Navbar/>

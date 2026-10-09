@@ -3,6 +3,11 @@ import ContactClient from "./ContactClient";
 import { constructMetadata } from "@/lib/seo";
 import { getBreadcrumbSchema } from "@/lib/schema";
 import JsonLd from "@/components/seo/JsonLd";
+import { db } from "@/lib/db";
+import { speakers, sponsors } from "@/lib/db/schema";
+import { count, eq } from "drizzle-orm";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = constructMetadata({
   title: "Contact Us",
@@ -11,7 +16,22 @@ export const metadata: Metadata = constructMetadata({
   path: "/contact",
 });
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const [speakerCount, partnerCount] = await Promise.all([
+    db
+      .select({ value: count() })
+      .from(speakers)
+      .where(eq(speakers.status, "ACCEPTED")),
+    db
+      .select({ value: count() })
+      .from(sponsors)
+      .where(eq(sponsors.status, "CONFIRMED")),
+  ]);
+  const stats = {
+    speakerCount: speakerCount[0].value,
+    partnerCount: partnerCount[0].value,
+  };
+
   return (
     <>
       <JsonLd
@@ -20,7 +40,7 @@ export default function ContactPage() {
           { name: "Contact", item: "/contact" },
         ])}
       />
-      <ContactClient />
+      <ContactClient stats={stats} />
     </>
   );
 }

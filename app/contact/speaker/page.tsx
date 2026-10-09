@@ -7,7 +7,7 @@ import JsonLd from "@/components/seo/JsonLd";
 export const metadata: Metadata = constructMetadata({
   title: "Nominate a Speaker",
   description:
-    "Nominate yourself or a visionary thinker to speak on the TEDxSMIU stage at Sindh Madressatul Islam University.",
+    "TEDxSMIU speaker applications are currently closed. Check back later for updates.",
   path: "/contact/speaker",
 });
 

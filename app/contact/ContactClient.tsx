@@ -6,6 +6,7 @@ import { Users, Mic, Mail, MapPin, ArrowRight, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa6";
+import { APPLICATIONS_OPEN } from "./application-status";
 
 const CONTACT_INFO = [
   {
@@ -57,7 +58,19 @@ const LEADS = [
   },
 ];
 
-export default function ContactClient() {
+export default function ContactClient({
+  stats,
+}: {
+  stats: { speakerCount: number; partnerCount: number };
+}) {
+  const metrics = [
+    { value: "300+", label: "Exclusive" },
+    { value: `${stats.speakerCount.toLocaleString()}+`, label: "Speakers" },
+    { value: `${stats.partnerCount.toLocaleString()}+`, label: "Partners" },
+    { value: "70+", label: "Team Size" },
+    { value: "1", label: "Venue" },
+  ];
+
   return (
     <PageShell>
       <PageHero
@@ -95,7 +108,7 @@ export default function ContactClient() {
                     </p>
                   </div>
                   {"socials" in info && info.socials ? (
-                    <div className="mt-6 flex gap-3 border-t border-border pt-4">
+                    <div className="mt-6 flex gap-3 border-t border-border pt-2">
                       {info.socials.map((social) => {
                         const SocialIcon = social.icon;
                         return (
@@ -106,7 +119,7 @@ export default function ContactClient() {
                             rel="noopener noreferrer"
                             aria-label={`Visit TEDxSMIU on ${social.name}`}
                             title={social.name}
-                            className="inline-flex h-10 w-10 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                            className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
                           >
                             <SocialIcon className="h-4 w-4" />
                           </a>
@@ -228,8 +241,12 @@ export default function ContactClient() {
                   reach an engaged, diverse community of innovators and thought leaders.
                 </p>
               </div>
-              <span className="inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-widest text-primary transition-all group-hover:gap-3">
-                Apply now <ArrowRight className="h-4 w-4" />
+              <span className="inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-widest text-primary">
+                {APPLICATIONS_OPEN ? (
+                  <>Apply now <ArrowRight className="h-4 w-4 transition-all group-hover:translate-x-1" /></>
+                ) : (
+                  "Currently Closed"
+                )}
               </span>
             </Link>
 
@@ -248,8 +265,12 @@ export default function ContactClient() {
                   perspectives that challenge assumptions. Got an idea worth spreading?
                 </p>
               </div>
-              <span className="inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-widest text-primary transition-all group-hover:gap-3">
-                Apply now <ArrowRight className="h-4 w-4" />
+              <span className="inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-widest text-primary">
+                {APPLICATIONS_OPEN ? (
+                  <>Apply now <ArrowRight className="h-4 w-4 transition-all group-hover:translate-x-1" /></>
+                ) : (
+                  "Currently Closed"
+                )}
               </span>
             </Link>
 
@@ -278,23 +299,17 @@ export default function ContactClient() {
       {/* Stats Section */}
       <section className="border-t border-border bg-background px-6 py-20 lg:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            <div className="text-center">
-              <p className="font-display text-4xl font-black text-foreground md:text-5xl">500+</p>
-              <p className="mt-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">Attendees</p>
-            </div>
-            <div className="text-center">
-              <p className="font-display text-4xl font-black text-foreground md:text-5xl">10+</p>
-              <p className="mt-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">Speakers</p>
-            </div>
-            <div className="text-center">
-              <p className="font-display text-4xl font-black text-foreground md:text-5xl">50+</p>
-              <p className="mt-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">Volunteers</p>
-            </div>
-            <div className="text-center">
-              <p className="font-display text-4xl font-black text-foreground md:text-5xl">1</p>
-              <p className="mt-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">Historic Campus</p>
-            </div>
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+            {metrics.map(({ value, label }) => (
+              <div key={label} className="text-center">
+                <p className="font-display text-4xl font-black text-foreground md:text-5xl">
+                  {value}
+                </p>
+                <p className="mt-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                  {label}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -7,7 +7,7 @@ import JsonLd from "@/components/seo/JsonLd";
 export const metadata: Metadata = constructMetadata({
   title: "Partner Application",
   description:
-    "Partner with TEDxSMIU to align your brand with innovation, student leadership, and world-changing ideas at Sindh Madressatul Islam University.",
+    "TEDxSMIU partner applications are currently closed. Check back later for updates.",
   path: "/contact/partner",
 });
 

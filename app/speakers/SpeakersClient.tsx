@@ -175,7 +175,7 @@ export default function SpeakersClient() {
 
             return {
               ...rawSpeaker,
-              image: rawSpeaker.imageUrl || rawSpeaker.image || "/images/speakers/speaker1.jpg",
+              image: rawSpeaker.imageUrl || rawSpeaker.image || "/images/team/lead.jpg",
               title: rawSpeaker.headline || rawSpeaker.title || "TEDx Speaker",
               tags: [eventTitle],
             };
@@ -301,7 +301,7 @@ export default function SpeakersClient() {
                               className="group relative mx-auto h-[19rem] w-full max-w-[16rem] cursor-pointer overflow-hidden border border-neutral-800 bg-[#090909] text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#EB0028] hover:shadow-[0_0_26px_rgba(235,0,40,0.2)] sm:h-[21rem] sm:max-w-[17rem] md:h-[22rem] md:max-w-[18rem] lg:h-[24rem]"
                             >
                               <Image
-                                src={normalizeImageSrc(s.image || "/images/speakers/speaker1.jpg")}
+                                src={normalizeImageSrc(s.image || "/images/team/lead.jpg")}
                                 alt={s.name}
                                 fill
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

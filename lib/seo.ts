@@ -6,7 +6,6 @@ export const SITE_CONFIG = {
   description:
     "An independently organized TEDx event at Sindh Madressatul Islam University. A cinematic journey through human innovation, creativity, and ideas worth spreading.",
   defaultOgImage: "/images/branding/X main Logo.png",
-  twitterHandle: "@tedxsmiu",
   locale: "en_PK",
   organization: {
     name: "TEDxSMIU",
@@ -16,7 +15,6 @@ export const SITE_CONFIG = {
       "https://www.instagram.com/tedxsmiu/",
       "https://www.facebook.com/tedxsmiuofficial",
       "https://www.linkedin.com/company/tedxsmiuofficial/",
-      "https://x.com/tedxsmiu",
       "https://www.youtube.com/@TEDxSMIU-e5m",
     ],
   },
@@ -98,8 +96,6 @@ export function constructMetadata({
       title: pageTitle,
       description,
       images: [absoluteImageUrl],
-      creator: SITE_CONFIG.twitterHandle,
-      site: SITE_CONFIG.twitterHandle,
     },
     icons: {
       icon: "/favicon.ico",

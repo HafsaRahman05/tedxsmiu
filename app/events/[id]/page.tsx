@@ -255,7 +255,7 @@ export default async function EventDetailPage({ params }: Props) {
                   className="group relative mx-auto h-[22rem] w-full max-w-[18rem] overflow-hidden border border-white/10 bg-black sm:h-[23rem] lg:h-[24rem]"
                 >
                   <Image
-                    src={cleanImageUrl(member.imageUrl, "/images/speakers/speaker1.jpg")}
+                    src={cleanImageUrl(member.imageUrl, "/images/team/lead.jpg")}
                     alt={member.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

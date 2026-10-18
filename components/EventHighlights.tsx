@@ -128,7 +128,7 @@ export default function EventHighlights({
                           className="group relative h-[15rem] w-[12rem] shrink-0 overflow-hidden border border-neutral-800 bg-[#090909] text-white sm:h-64 sm:w-[13rem] md:h-[17rem] md:w-56 lg:h-[18rem] lg:w-[15rem]"
                         >
                           <Image
-                            src={cleanImageUrl(speaker?.imageUrl, "/images/speakers/speaker1.jpg")}
+                            src={cleanImageUrl(speaker?.imageUrl, "/images/team/lead.jpg")}
                             alt={speaker?.name || "TEDx speaker"}
                             fill
                             sizes="240px"

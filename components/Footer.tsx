@@ -17,7 +17,7 @@ const SOCIALS = [
 const LINKS = [ 
   { label: "Home", href: "/" },{ label: "About", href: "/about" },
   { label: "Events", href: "/events" },{ label: "Team", href: "/team" },
-  { label: "Speakers", href: "/speakers" },{ label: "Guest", href: "/guest" },
+  { label: "Speakers", href: "/speakers" },{ label: "Guests", href: "/guests" },
   { label: "Partners", href: "/partners" },{ label: "Contact", href: "/contact" },
 ];
 

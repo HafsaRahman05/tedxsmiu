@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
       return {
         ...m,
-        imageUrl: cleanImageUrl(m.imageUrl, "/images/speakers/speaker1.jpg"),
+        imageUrl: cleanImageUrl(m.imageUrl, "/images/team/lead.jpg"),
         socialLinks: parsedSocialLinks,
       };
     });

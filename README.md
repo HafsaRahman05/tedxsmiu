@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TEDxSMIU
 
-## Getting Started
+Website for TEDxSMIU, an independently organized TEDx event at Sindh Madressatul Islam University in Karachi. The public site covers the event, speakers, guests, team, gallery, talks, partners, and tickets. Organizers manage that content from the admin panel.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 and React
+- PostgreSQL with Drizzle
+- Better Auth for organizer sign-in
+
+## Local setup
+
+Install dependencies, then copy the environment template and fill in real values:
 
 ```bash
+npm install
+copy .env.local.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Start the local site |
+| `npm run build` | Build for production |
+| `npm start` | Serve the production build |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment
 
-## Learn More
+`.env.local.example` lists the database, Cloudinary, and email settings. The app also reads these when the matching feature is used:
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Used for |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Image and video uploads |
+| `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_URL` | Optional Cloudflare R2 storage when Cloudinary is not set |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_NOTIFICATION_EMAIL` | Ticket registration emails |
+| `SEED_SECRET`, `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD`, `ADMIN_SEED_NAME` | One-time admin account, only while the user table is empty |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The seed route is `GET /api/admin/seed` and requires the `x-seed-secret` header to match `SEED_SECRET`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Admin media on the homepage
 
-## Deploy on Vercel
+In **Media Library**, set the type to **VIDEO**, upload a file or paste a URL, attach it to an event, and choose a gallery category. Uploaded videos can be MP4, WebM, MOV, or MKV, up to 50 MB.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+That album appears in the homepage section **Where ideas ignite**. The homepage shows the first four albums; opening an album plays the video. A YouTube talk is added on the speaker inside **Events** and shows under **Speakers & talks**.

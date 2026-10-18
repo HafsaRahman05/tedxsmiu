@@ -98,7 +98,7 @@ export async function GET(
       ...speaker,
       headline: speaker.headline || "TEDx Speaker",
       title: speaker.headline || "TEDx Speaker",
-      image: speaker.imageUrl || "/images/speakers/speaker1.jpg",
+      image: speaker.imageUrl || "/images/team/lead.jpg",
       tags: ["TEDx Talk"],
       socialLinks: parsedSocialLinks,
     };

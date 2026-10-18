@@ -28,6 +28,8 @@ export default async function AdminTeamPage() {
     .select({
       id: events.id,
       title: events.title,
+      slug: events.slug,
+      date: events.date,
     })
     .from(events)
     .where(isNull(events.deletedAt))

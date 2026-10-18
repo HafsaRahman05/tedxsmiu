@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Edit2, Trash2, X, Upload, Check, Globe, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -40,7 +40,17 @@ interface SpeakersClientProps {
 export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps) {
   const router = useRouter();
   const [speakersList, setSpeakersList] = useState<Speaker[]>(initialSpeakers);
+  const [selectedYearFilter, setSelectedYearFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isModalOpen]);
   const [editingSpeaker, setEditingSpeaker] = useState<Speaker | null>(null);
 
   // Form fields: name, headline, status, sort index, description (bio), image, social links (including email)
@@ -48,7 +58,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
   const [headline, setHeadline] = useState("");
   const [bio, setBio] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [eventYear, setEventYear] = useState(2023);
+  const [eventYear, setEventYear] = useState(2026);
   const [status, setStatus] = useState<Speaker["status"]>("ACCEPTED");
   const [sortOrder, setSortOrder] = useState(0);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
@@ -61,7 +71,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
     setHeadline("");
     setBio("");
     setImageUrl("");
-    setEventYear(2023);
+    setEventYear(2026);
     setStatus("ACCEPTED");
     setSortOrder(0);
     setSocialLinks([]);
@@ -74,7 +84,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
     setHeadline(speaker.headline || "");
     setBio(speaker.bio || "");
     setImageUrl(speaker.imageUrl || "");
-    setEventYear(speaker.eventYear || 2023);
+    setEventYear(speaker.eventYear || 2026);
     setStatus(speaker.status);
     setSortOrder(speaker.sortOrder || 0);
     setSocialLinks(speaker.socialLinks || []);
@@ -202,16 +212,34 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
             Speaker Profiles
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage speaker profiles (Name, Headline, Status, Sort Index, Description, Image, and Social Links with Email).
+            Manage speaker profiles (Name, Headline, Status, Sort Index, Description, Image, and Social Links).
           </p>
         </div>
-        <Button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 rounded-none px-5 py-5 font-mono text-xs font-bold uppercase tracking-[0.15em]"
-        >
-          <Plus className="h-4 w-4" />
-          Add Speaker
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center border border-border bg-card p-1">
+            {["ALL", "2026", "2023"].map((yr) => (
+              <button
+                key={yr}
+                type="button"
+                onClick={() => setSelectedYearFilter(yr)}
+                className={`px-3 py-1 font-mono text-xs font-bold uppercase transition-colors ${
+                  selectedYearFilter === yr
+                    ? "bg-primary text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {yr === "ALL" ? "All Years" : `${yr} Edition`}
+              </button>
+            ))}
+          </div>
+          <Button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 rounded-none px-5 py-5 font-mono text-xs font-bold uppercase tracking-[0.15em]"
+          >
+            <Plus className="h-4 w-4" />
+            Add Speaker
+          </Button>
+        </div>
       </div>
 
       {/* Grid listing */}
@@ -222,7 +250,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Photo</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Speaker & Headline</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Description</TableHead>
-              <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Social Links & Email</TableHead>
+              <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Links</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sort Index</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Event Year</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</TableHead>
@@ -230,14 +258,23 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-border">
-            {speakersList.length === 0 ? (
-              <TableRow className="border-border">
-                <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground font-mono">
-                  No speaker profiles registered yet.
-                </TableCell>
-              </TableRow>
-            ) : (
-              speakersList.map((speaker) => (
+            {(() => {
+              const displayed = speakersList.filter((s) => {
+                if (selectedYearFilter === "ALL") return true;
+                return String(s.eventYear) === selectedYearFilter;
+              });
+
+              if (displayed.length === 0) {
+                return (
+                  <TableRow className="border-border">
+                    <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground font-mono">
+                      No speaker profiles found for {selectedYearFilter === "ALL" ? "any edition" : `${selectedYearFilter} edition`}.
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              return displayed.map((speaker) => (
                 <TableRow key={speaker.id} className="border-border hover:bg-secondary/20 transition-colors">
                   <TableCell>
                     {speaker.imageUrl ? (
@@ -273,7 +310,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                   <TableCell>
                     <div className="flex flex-wrap gap-1.5">
                       {speaker.socialLinks && speaker.socialLinks.length > 0 ? (
-                        speaker.socialLinks.map((link, idx) => (
+                        speaker.socialLinks.slice(0, 2).map((link, idx) => (
                           <a
                             key={idx}
                             href={link.platform === "email" && !link.url.startsWith("mailto:") ? `mailto:${link.url}` : link.url}
@@ -286,11 +323,11 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                             ) : (
                               <Globe className="h-2.5 w-2.5 text-primary" />
                             )}
-                            {link.platform}: {link.url}
+                            {link.platform}
                           </a>
                         ))
                       ) : (
-                        <span className="font-mono text-[10px] text-muted-foreground/60">No links</span>
+                        <span className="font-mono text-[10px] text-muted-foreground/60">—</span>
                       )}
                     </div>
                   </TableCell>
@@ -300,8 +337,8 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="font-mono text-xs text-primary">
-                      {speaker.eventYears?.length ? speaker.eventYears.join(", ") : "Unassigned"}
+                    <span className="font-mono text-xs font-bold text-primary">
+                      {speaker.eventYear || (speaker.eventYears?.length ? speaker.eventYears.join(", ") : 2026)}
                     </span>
                   </TableCell>
                   <TableCell className="space-y-2">
@@ -353,14 +390,14 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                   </TableCell>
                 </TableRow>
               ))
-            )}
+            })()}
           </TableBody>
         </Table>
       </div>
 
       {/* Editor Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="w-full max-w-xl border border-border bg-card p-6 space-y-6 my-8 shadow-2xl">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <h2 className="font-display text-xl font-black uppercase text-foreground">
@@ -494,9 +531,9 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                 </div>
               </div>
 
-              {/* Social Links Component (including Email) */}
+              {/* Social Links Component (max 2 links) */}
               <div className="pt-2 border-t border-border">
-                <SocialLinksInput links={socialLinks} onChange={setSocialLinks} />
+                <SocialLinksInput links={socialLinks} onChange={setSocialLinks} maxLinks={2} />
               </div>
 
               {/* Submit Buttons */}

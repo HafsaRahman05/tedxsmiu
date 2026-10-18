@@ -5,7 +5,8 @@ import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -13,6 +14,10 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/webp",
   "image/avif",
   "application/pdf",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/x-matroska",
 ]);
 
 const ALLOWED_EXTENSIONS = new Set([
@@ -22,6 +27,10 @@ const ALLOWED_EXTENSIONS = new Set([
   ".webp",
   ".avif",
   ".pdf",
+  ".mp4",
+  ".webm",
+  ".mov",
+  ".mkv",
 ]);
 
 export async function POST(request: NextRequest) {
@@ -36,9 +45,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. File Size Validation
-    if (file.size > MAX_FILE_SIZE_BYTES) {
+    const isVideo = file.type?.toLowerCase().startsWith("video/");
+    const maxAllowedSize = isVideo ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+    const maxAllowedSizeLabel = isVideo ? "50MB" : "10MB";
+
+    if (file.size > maxAllowedSize) {
       return NextResponse.json(
-        { error: "File exceeds the maximum allowed size of 5MB" },
+        { error: `File exceeds the maximum allowed size of ${maxAllowedSizeLabel}` },
         { status: 400 }
       );
     }
@@ -46,7 +59,7 @@ export async function POST(request: NextRequest) {
     // 2. MIME Type Validation
     if (!file.type || !ALLOWED_MIME_TYPES.has(file.type.toLowerCase())) {
       return NextResponse.json(
-        { error: "Invalid file type. Allowed formats: JPG, PNG, WebP, AVIF, PDF" },
+        { error: "Invalid file type. Allowed formats: JPG, PNG, WebP, AVIF, PDF, MP4, WebM, MOV" },
         { status: 400 }
       );
     }
@@ -55,7 +68,7 @@ export async function POST(request: NextRequest) {
     const rawExtension = path.extname(file.name || "").toLowerCase();
     if (!rawExtension || !ALLOWED_EXTENSIONS.has(rawExtension)) {
       return NextResponse.json(
-        { error: "Invalid file extension. Allowed extensions: .jpg, .jpeg, .png, .webp, .avif, .pdf" },
+        { error: "Invalid file extension. Allowed extensions: .jpg, .jpeg, .png, .webp, .avif, .pdf, .mp4, .webm, .mov, .mkv" },
         { status: 400 }
       );
     }

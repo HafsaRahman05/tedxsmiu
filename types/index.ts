@@ -18,7 +18,7 @@ export type Talk = {
   id: string;
   title: string;
   speaker: string;
-  duration: string;
+  duration?: string;
   category: string;
   gradient: string;
   summary: string;

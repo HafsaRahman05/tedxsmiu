@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Edit2, Trash2, Shield, X, Upload, ExternalLink, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,14 +37,24 @@ interface SponsorsClientProps {
 export default function SponsorsClient({ initialSponsors }: SponsorsClientProps) {
   const router = useRouter();
   const [sponsorsList, setSponsorsList] = useState<Sponsor[]>(initialSponsors);
+  const [selectedYearFilter, setSelectedYearFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isModalOpen]);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
 
   // Form fields
   const [name, setName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
-  const [eventYear, setEventYear] = useState(2023);
+  const [eventYear, setEventYear] = useState(2026);
   const [tier, setTier] = useState<Sponsor["tier"]>("GOLD");
   const [status, setStatus] = useState<Sponsor["status"]>("CONFIRMED");
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
@@ -56,7 +66,7 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
     setName("");
     setLogoUrl("");
     setWebsiteUrl("");
-    setEventYear(2023);
+    setEventYear(2026);
     setTier("GOLD");
     setStatus("CONFIRMED");
     setSocialLinks([]);
@@ -68,7 +78,7 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
     setName(sponsor.name);
     setLogoUrl(sponsor.logoUrl || "");
     setWebsiteUrl(sponsor.websiteUrl || "");
-    setEventYear(sponsor.eventYear || 2023);
+    setEventYear(sponsor.eventYear || 2026);
     setTier(sponsor.tier || "GOLD");
     setStatus(sponsor.status);
     setSocialLinks(sponsor.socialLinks || []);
@@ -176,16 +186,34 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
             Sponsors & Partners
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage organization partner profiles and social links. Assign partners directly to Event Editions.
+            Manage organization partner profiles and official links.
           </p>
         </div>
-        <Button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 rounded-none px-5 py-5 font-mono text-xs font-bold uppercase tracking-[0.15em]"
-        >
-          <Plus className="h-4 w-4" />
-          Add Partner
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center border border-border bg-card p-1">
+            {["ALL", "2026", "2023"].map((yr) => (
+              <button
+                key={yr}
+                type="button"
+                onClick={() => setSelectedYearFilter(yr)}
+                className={`px-3 py-1 font-mono text-xs font-bold uppercase transition-colors ${
+                  selectedYearFilter === yr
+                    ? "bg-primary text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {yr === "ALL" ? "All Years" : `${yr} Edition`}
+              </button>
+            ))}
+          </div>
+          <Button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 rounded-none px-5 py-5 font-mono text-xs font-bold uppercase tracking-[0.15em]"
+          >
+            <Plus className="h-4 w-4" />
+            Add Partner
+          </Button>
+        </div>
       </div>
 
       {/* Grid listing */}
@@ -195,22 +223,32 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Logo</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Partner Name</TableHead>
+              <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Event Year</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Website</TableHead>
-              <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Social Links</TableHead>
+              <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Social Link</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Default Tier</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</TableHead>
               <TableHead className="text-right font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-border">
-            {sponsorsList.length === 0 ? (
-              <TableRow className="border-border">
-                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground font-mono">
-                  No partners registered yet.
-                </TableCell>
-              </TableRow>
-            ) : (
-              sponsorsList.map((sponsor) => (
+            {(() => {
+              const displayed = sponsorsList.filter((s) => {
+                if (selectedYearFilter === "ALL") return true;
+                return String(s.eventYear) === selectedYearFilter;
+              });
+
+              if (displayed.length === 0) {
+                return (
+                  <TableRow className="border-border">
+                    <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground font-mono">
+                      No partners found for {selectedYearFilter === "ALL" ? "any edition" : `${selectedYearFilter} edition`}.
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              return displayed.map((sponsor) => (
                 <TableRow key={sponsor.id} className="border-border hover:bg-secondary/20 transition-colors">
                   <TableCell>
                     {sponsor.logoUrl ? (
@@ -234,6 +272,11 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
                     </div>
                   </TableCell>
                   <TableCell>
+                    <span className="font-mono text-xs font-bold text-primary">
+                      {sponsor.eventYear || 2026}
+                    </span>
+                  </TableCell>
+                  <TableCell>
                     {sponsor.websiteUrl ? (
                       <a
                         href={sponsor.websiteUrl}
@@ -248,9 +291,9 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {sponsor.socialLinks && sponsor.socialLinks.length > 0 ? (
-                        sponsor.socialLinks.map((link, idx) => (
+                        sponsor.socialLinks.slice(0, 1).map((link, idx) => (
                           <a
                             key={idx}
                             href={link.url}
@@ -263,7 +306,7 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
                           </a>
                         ))
                       ) : (
-                        <span className="font-mono text-[10px] text-muted-foreground/60">No links</span>
+                        <span className="font-mono text-[10px] text-muted-foreground/60">—</span>
                       )}
                     </div>
                   </TableCell>
@@ -310,14 +353,14 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
                   </TableCell>
                 </TableRow>
               ))
-            )}
+            })()}
           </TableBody>
         </Table>
       </div>
 
       {/* Editor Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="w-full max-w-xl border border-border bg-card p-6 space-y-6 my-8 shadow-2xl">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <h2 className="font-display text-xl font-black uppercase text-foreground">
@@ -442,9 +485,9 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
                 </div>
               </div>
 
-              {/* Multiple Social Links Component */}
+              {/* Optional Social Link Component (max 1) */}
               <div className="pt-2 border-t border-border">
-                <SocialLinksInput links={socialLinks} onChange={setSocialLinks} />
+                <SocialLinksInput links={socialLinks} onChange={setSocialLinks} maxLinks={1} />
               </div>
 
               {/* Submit Buttons */}

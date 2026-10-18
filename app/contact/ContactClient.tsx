@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa6";
 import { APPLICATIONS_OPEN } from "./application-status";
+import ContactQueryForm from "@/components/ContactQueryForm";
 
 const CONTACT_INFO = [
   {
@@ -153,6 +154,21 @@ export default function ContactClient({
                 </article>
               );
             })}
+          </div>
+
+          <div className="mt-16 grid gap-10 border-t border-border pt-16 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
+            <div className="max-w-md">
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-primary">
+                Direct inquiry
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-black uppercase tracking-tight text-foreground sm:text-4xl">
+                Send a query
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                Questions about the event, tickets, or the program go straight to the organizing inbox. Reply comes from the same address you enter here.
+              </p>
+            </div>
+            <ContactQueryForm />
           </div>
 
         </div>

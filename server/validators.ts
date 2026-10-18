@@ -128,6 +128,13 @@ export const ContactInputSchema = z.object({
   status: InquiryStatusSchema.default("NEW"),
 });
 
+export const PublicContactInputSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(120),
+  email: z.string().trim().email("Invalid email address").max(200),
+  subject: z.string().trim().min(4, "Subject must be at least 4 characters").max(160),
+  message: z.string().trim().min(10, "Message must be at least 10 characters").max(5000),
+});
+
 export const ContactUpdateSchema = ContactInputSchema.partial();
 
 export const ProfileUpdateSchema = z.object({

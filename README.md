@@ -36,6 +36,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Image and video uploads |
 | `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_URL` | Optional Cloudflare R2 storage when Cloudinary is not set |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_NOTIFICATION_EMAIL` | Ticket registration emails |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `CONTACT_TO_EMAIL` | Contact page queries, sent with Nodemailer. For Gmail, `SMTP_PASS` is an app password. |
 | `SEED_SECRET`, `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD`, `ADMIN_SEED_NAME` | One-time admin account, only while the user table is empty |
 
 The seed route is `GET /api/admin/seed` and requires the `x-seed-secret` header to match `SEED_SECRET`.

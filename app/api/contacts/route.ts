@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { contacts } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAdminOrOrganizer, handleApiError } from "@/server/auth/helper";
-import { ContactInputSchema } from "@/server/validators";
+import { PublicContactInputSchema } from "@/server/validators";
+import { sendContactQuery } from "@/lib/mail";
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,18 +36,38 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const parsed = ContactInputSchema.parse(body);
+    if (typeof body?.website === "string" && body.website.trim()) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const parsed = PublicContactInputSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid inquiry" },
+        { status: 400 },
+      );
+    }
+
+    await sendContactQuery(parsed.data);
 
     const id = crypto.randomUUID();
-    const newInquiry = {
-      id,
-      ...parsed,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    try {
+      await db.insert(contacts).values({
+        id,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        category: "GENERAL",
+        subject: parsed.data.subject,
+        message: parsed.data.message,
+        status: "NEW",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    } catch (dbError) {
+      console.error("Contact email was sent, but the inquiry was not saved:", dbError);
+    }
 
-    await db.insert(contacts).values(newInquiry);
-    return NextResponse.json(newInquiry, { status: 201 });
+    return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {
     return handleApiError(error);
   }

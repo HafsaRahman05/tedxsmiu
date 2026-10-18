@@ -22,22 +22,22 @@ export interface SocialLink {
 interface SocialLinksInputProps {
   links: SocialLink[];
   onChange: (links: SocialLink[]) => void;
+  maxLinks?: number;
 }
 
 const PLATFORMS = [
-  { value: "email", label: "Email", icon: Mail },
   { value: "linkedin", label: "LinkedIn", icon: FaLinkedin },
-  { value: "twitter", label: "Twitter / X", icon: FaSquareXTwitter },
   { value: "instagram", label: "Instagram", icon: FaInstagram },
-  { value: "facebook", label: "Facebook", icon: FaFacebook },
-  { value: "youtube", label: "YouTube", icon: FaYoutube },
-  { value: "github", label: "GitHub", icon: FaGithub },
+  { value: "twitter", label: "Twitter / X", icon: FaSquareXTwitter },
   { value: "website", label: "Website", icon: FaGlobe },
-  { value: "other", label: "Other Link", icon: Globe },
+  { value: "email", label: "Email", icon: Mail },
 ];
 
-export default function SocialLinksInput({ links, onChange }: SocialLinksInputProps) {
+export default function SocialLinksInput({ links, onChange, maxLinks = 2 }: SocialLinksInputProps) {
+  const canAddMore = links.length < maxLinks;
+
   const addLink = () => {
+    if (!canAddMore) return;
     onChange([...links, { platform: "linkedin", url: "" }]);
   };
 
@@ -55,22 +55,24 @@ export default function SocialLinksInput({ links, onChange }: SocialLinksInputPr
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Social Links ({links.length})
+          Links ({links.length} / max {maxLinks})
         </label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addLink}
-          className="h-7 px-2 font-mono text-[10px] font-bold uppercase gap-1 rounded-none border-border"
-        >
-          <Plus className="h-3 w-3" /> Add Link
-        </Button>
+        {canAddMore && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addLink}
+            className="h-7 px-2 font-mono text-[10px] font-bold uppercase gap-1 rounded-none border-border"
+          >
+            <Plus className="h-3 w-3" /> Add Link
+          </Button>
+        )}
       </div>
 
       {links.length === 0 ? (
-        <div className="p-3 border border-dashed border-border text-center font-mono text-xs text-muted-foreground">
-          No social links added yet. Click "Add Link" to add social profiles.
+        <div className="p-2.5 border border-dashed border-border text-center font-mono text-xs text-muted-foreground">
+          No social links added. Click &quot;Add Link&quot; (max {maxLinks}).
         </div>
       ) : (
         <div className="space-y-2">

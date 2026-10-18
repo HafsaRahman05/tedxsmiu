@@ -74,7 +74,7 @@ export default function TalksClient() {
                       style={{ background: t.gradient }}
                     >
                       <span className="rounded-none border border-white/10 bg-black/80 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur">
-                        {t.duration}
+                        {t.category || "TEDx Talk"}
                       </span>
                       <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
                         <span className="flex h-14 w-14 items-center justify-center rounded-none border border-white/30 bg-black/60 backdrop-blur transition-transform group-hover:scale-110">

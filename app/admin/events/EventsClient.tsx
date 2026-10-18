@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Edit2, Trash2, Calendar, MapPin, Users, Star, X, Mic, Shield, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -92,6 +92,15 @@ export default function EventsClient({
   const router = useRouter();
   const [eventsList, setEventsList] = useState<EventItem[]>(initialEvents);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isModalOpen]);
   const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
 
   // Form fields
@@ -458,7 +467,7 @@ export default function EventsClient({
 
       {/* Editor Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="w-full max-w-3xl border border-border bg-card p-6 space-y-6 my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-border pb-4 sticky top-0 bg-card z-10">

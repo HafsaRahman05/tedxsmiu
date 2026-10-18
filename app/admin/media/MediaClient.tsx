@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Trash2, X, Upload, Calendar, Image as ImageIcon, Video, FolderOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -29,18 +29,35 @@ interface MediaClientProps {
   events: Event[];
 }
 
+const HOMEPAGE_GALLERY_CATEGORIES = [
+  "Main stage moments",
+  "Audience energy",
+  "Speakers & talks",
+  "Community highlights",
+] as const;
+
 export default function MediaClient({ initialMedia, events }: MediaClientProps) {
   const router = useRouter();
   const [mediaList, setMediaList] = useState<MediaItem[]>(initialMedia);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isModalOpen]);
 
   // Form fields
   const [type, setType] = useState<"IMAGE" | "VIDEO">("IMAGE");
   const [url, setUrl] = useState("");
   const [altText, setAltText] = useState("");
   const [eventId, setEventId] = useState("");
-  const [albumName, setAlbumName] = useState("");
-  
+  const [albumPreset, setAlbumPreset] = useState<string>(HOMEPAGE_GALLERY_CATEGORIES[0]);
+  const [customAlbum, setCustomAlbum] = useState("");
+
   const [isUploading, setIsUploading] = useState(false);
 
   const openCreateModal = () => {
@@ -48,7 +65,8 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
     setUrl("");
     setAltText("");
     setEventId(events[0]?.id || "");
-    setAlbumName("");
+    setAlbumPreset(HOMEPAGE_GALLERY_CATEGORIES[0]);
+    setCustomAlbum("");
     setIsModalOpen(true);
   };
 
@@ -68,7 +86,7 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
 
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
-      
+
       if (data.url) {
         setUrl(data.url);
         toast.success("Media file uploaded successfully");
@@ -89,12 +107,14 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
       return;
     }
 
+    const resolvedAlbum = albumPreset === "CUSTOM" ? customAlbum.trim() : albumPreset;
+
     const payload = {
       type,
       url,
       altText: altText || null,
       eventId: eventId || null,
-      albumName: albumName || null,
+      albumName: resolvedAlbum || null,
     };
 
     try {
@@ -187,9 +207,19 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                     className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
-                    <Video className="h-8 w-8 text-primary mb-1.5" />
-                    <span className="font-mono text-[9px] text-muted-foreground break-all">{item.url}</span>
+                  <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+                    <video
+                      src={item.url}
+                      className="w-full h-full object-cover opacity-80"
+                      muted
+                      playsInline
+                      preload="metadata"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors pointer-events-none">
+                      <span className="h-9 w-9 rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg">
+                        <Video className="h-4 w-4 ml-0.5" />
+                      </span>
+                    </div>
                   </div>
                 )}
                 {/* Delete button overlay */}
@@ -245,7 +275,7 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
 
       {/* Editor Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="w-full max-w-lg border border-border bg-card p-6 space-y-6 my-8 shadow-2xl">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <h2 className="font-display text-xl font-black uppercase text-foreground">
@@ -340,21 +370,34 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                   </select>
                 </div>
 
-                {/* Album Name */}
+                {/* Album Category */}
                 <div className="space-y-2">
                   <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Album Name (Optional)
+                    Gallery Category / Album
                   </Label>
-                  <Input
-                    type="text"
-                    value={albumName}
-                    onChange={(e) => setAlbumName(e.target.value)}
-                    placeholder="e.g. Main stage, Audience energy, Speakers & talks"
-                    className="rounded-none border-border bg-background focus-visible:ring-primary"
-                  />
+                  <select
+                    value={albumPreset}
+                    onChange={(e) => setAlbumPreset(e.target.value)}
+                    className="flex h-10 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary font-mono text-xs"
+                  >
+                    {HOMEPAGE_GALLERY_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat} (Homepage)
+                      </option>
+                    ))}
+                    <option value="CUSTOM">Custom Album Name...</option>
+                  </select>
+                  {albumPreset === "CUSTOM" && (
+                    <Input
+                      type="text"
+                      value={customAlbum}
+                      onChange={(e) => setCustomAlbum(e.target.value)}
+                      placeholder="Enter custom album name"
+                      className="rounded-none border-border bg-background focus-visible:ring-primary text-xs mt-2"
+                    />
+                  )}
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                    This becomes a public gallery category. Reuse a name to group
-                    related photos and videos together.
+                    Connects directly to the homepage gallery and event media reels.
                   </p>
                 </div>
               </div>

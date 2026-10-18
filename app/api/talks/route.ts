@@ -19,7 +19,6 @@ export async function GET() {
       summary: es.abstract || "",
       speaker: es.speaker?.name || "Guest Speaker",
       category: "TEDxTalk",
-      duration: "18:00",
       youtubeUrl: es.youtubeUrl,
       gradient: "linear-gradient(135deg, #EB0028, #1a0205)",
     }));

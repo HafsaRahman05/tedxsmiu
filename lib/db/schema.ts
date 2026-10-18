@@ -148,7 +148,7 @@ export const speakers = pgTable("speakers", {
   bio: text("bio"), // description
   imageUrl: text("image_url"),
   socialLinks: text("social_links"), // JSON string array of { platform, url } (email included as a social link)
-  eventYear: integer("Event_Year").notNull().default(2023),
+  eventYear: integer("Event_Year").notNull().default(2026),
   status: speakerStatusEnum("status").default("ACCEPTED").notNull(),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -200,7 +200,7 @@ export const sponsors = pgTable("sponsors", {
   logoUrl: text("logo_url"),
   websiteUrl: text("website_url"),
   socialLinks: text("social_links"), // JSON string array of { platform, url }
-  eventYear: integer("Event_Year").notNull().default(2023),
+  eventYear: integer("Event_Year").notNull().default(2026),
   tier: sponsorTierEnum("tier"),
   status: sponsorStatusEnum("status").default("CONFIRMED").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

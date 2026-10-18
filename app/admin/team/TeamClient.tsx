@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Edit2, Trash2, Shield, X, Upload, Calendar, Globe, UserCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -35,6 +35,8 @@ interface TeamMember {
 interface Event {
   id: string;
   title: string;
+  slug?: string;
+  date?: string | Date;
 }
 
 interface TeamClientProps {
@@ -78,8 +80,33 @@ const PREDEFINED_ROLES = [
 export default function TeamClient({ initialTeam, events }: TeamClientProps) {
   const router = useRouter();
   const [teamList, setTeamList] = useState<TeamMember[]>(initialTeam);
+  const [teamEditionFilter, setTeamEditionFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isModalOpen]);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+
+  const getEventYear = (eventId: string | null) => {
+    if (!eventId) return 2026;
+    const ev = events.find((e) => e.id === eventId);
+    if (!ev) return 2026;
+    if (ev.slug === "2023") return 2023;
+    if (ev.slug === "2026") return 2026;
+    if (ev.date) return new Date(ev.date).getFullYear();
+    if (ev.title?.includes("2023")) return 2023;
+    return 2026;
+  };
+
+  const current2026EventId = events.find(
+    (e) => e.slug === "2026" || (e.date && new Date(e.date).getFullYear() === 2026) || e.title?.includes("2.0")
+  )?.id || "";
 
   // Form fields
   const [name, setName] = useState("");
@@ -106,7 +133,7 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
     setDesignation("");
     setImageUrl("");
     setBio("");
-    setEventId("");
+    setEventId(current2026EventId);
     setSortOrder(0);
     setSocialLinks([]);
     setIsModalOpen(true);
@@ -261,16 +288,38 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
             Organizing Committee
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage team profiles by selecting predefined departments, roles, custom designations, and social links.
+            Manage team profiles and past members/department pictures.
           </p>
         </div>
-        <Button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 rounded-none px-5 py-5 font-mono text-xs font-bold uppercase tracking-[0.15em]"
-        >
-          <Plus className="h-4 w-4" />
-          Add Member
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center border border-border bg-card p-1">
+            {[
+              { id: "ALL", label: "All Members" },
+              { id: "2026", label: "2026 Current" },
+              { id: "2023", label: "2023 Past Members" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setTeamEditionFilter(tab.id)}
+                className={`px-3 py-1 font-mono text-xs font-bold uppercase transition-colors ${
+                  teamEditionFilter === tab.id
+                    ? "bg-primary text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <Button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 rounded-none px-5 py-5 font-mono text-xs font-bold uppercase tracking-[0.15em]"
+          >
+            <Plus className="h-4 w-4" />
+            Add Member
+          </Button>
+        </div>
       </div>
 
       {/* Grid listing */}
@@ -288,84 +337,107 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-border">
-            {teamList.length === 0 ? (
-              <TableRow className="border-border">
-                <TableCell colSpan={7} className="p-8 text-center text-sm text-muted-foreground font-mono">
-                  No team members registered yet.
-                </TableCell>
-              </TableRow>
-            ) : (
-              teamList.map((member) => (
-                <TableRow key={member.id} className="border-border hover:bg-secondary/20 transition-colors">
-                  <TableCell>
-                    {member.imageUrl ? (
-                      <div className="relative h-12 w-12 rounded-full border border-border bg-background overflow-hidden">
-                        <Image
-                          src={member.imageUrl}
-                          alt={member.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-12 w-12 rounded-full border border-border bg-background/50 flex items-center justify-center font-mono text-[9px] text-muted-foreground">
-                        N/A
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-display text-base font-black uppercase text-foreground">
-                      {member.name}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                      Order Index: {member.sortOrder ?? 0}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-mono text-xs font-bold text-primary uppercase">
-                      {member.department}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <span className="inline-flex items-center gap-1 rounded-none bg-secondary border border-border px-2 py-0.5 font-mono text-[10px] font-bold text-foreground uppercase">
-                        <Shield className="h-3 w-3 text-primary" />
-                        {member.role}
-                      </span>
-                      {member.designation && (
-                        <p className="text-xs text-muted-foreground font-mono italic">
-                          "{member.designation}"
-                        </p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1.5">
-                      {member.socialLinks && member.socialLinks.length > 0 ? (
-                        member.socialLinks.map((link, idx) => (
-                          <a
-                            key={idx}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 rounded-none border border-border bg-secondary px-2 py-0.5 font-mono text-[9px] font-bold text-foreground uppercase hover:border-primary hover:text-primary transition-colors"
-                          >
-                            <Globe className="h-2.5 w-2.5 text-primary" />
-                            {link.platform}
-                          </a>
-                        ))
+            {(() => {
+              const displayed = teamList.filter((m) => {
+                if (teamEditionFilter === "ALL") return true;
+                const yr = getEventYear(m.eventId);
+                return String(yr) === teamEditionFilter;
+              });
+
+              if (displayed.length === 0) {
+                return (
+                  <TableRow className="border-border">
+                    <TableCell colSpan={7} className="p-8 text-center text-sm text-muted-foreground font-mono">
+                      No team profiles found for {teamEditionFilter === "ALL" ? "any edition" : `${teamEditionFilter} edition`}.
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              return displayed.map((member) => {
+                const year = getEventYear(member.eventId);
+                return (
+                  <TableRow key={member.id} className="border-border hover:bg-secondary/20 transition-colors">
+                    <TableCell>
+                      {member.imageUrl ? (
+                        <div className="relative h-12 w-12 rounded-full border border-border bg-background overflow-hidden">
+                          <Image
+                            src={member.imageUrl}
+                            alt={member.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
-                        <span className="font-mono text-[10px] text-muted-foreground/60">No links</span>
+                        <div className="h-12 w-12 rounded-full border border-border bg-background/50 flex items-center justify-center font-mono text-[9px] text-muted-foreground">
+                          N/A
+                        </div>
                       )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>{getEventTitle(member.eventId)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-display text-base font-black uppercase text-foreground">
+                        {member.name}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                        Order Index: {member.sortOrder ?? 0}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-xs font-bold text-primary uppercase">
+                        {member.department}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <span className="inline-flex items-center gap-1 rounded-none bg-secondary border border-border px-2 py-0.5 font-mono text-[10px] font-bold text-foreground uppercase">
+                          <Shield className="h-3 w-3 text-primary" />
+                          {member.role}
+                        </span>
+                        {member.designation && (
+                          <p className="text-xs text-muted-foreground font-mono italic">
+                            &quot;{member.designation}&quot;
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {member.socialLinks && member.socialLinks.length > 0 ? (
+                          member.socialLinks.slice(0, 2).map((link, idx) => (
+                            <a
+                              key={idx}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-none border border-border bg-secondary px-2 py-0.5 font-mono text-[9px] font-bold text-foreground uppercase hover:border-primary hover:text-primary transition-colors"
+                            >
+                              <Globe className="h-2.5 w-2.5 text-primary" />
+                              {link.platform}
+                            </a>
+                          ))
+                        ) : (
+                          <span className="font-mono text-[10px] text-muted-foreground/60">—</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <span
+                          className={`inline-block px-2 py-0.5 font-mono text-[9px] font-bold border uppercase ${
+                            year === 2023
+                              ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                          }`}
+                        >
+                          {year === 2023 ? "2023 Past Archive" : "2026 Current"}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          <span>{getEventTitle(member.eventId)}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
                     <div className="inline-flex gap-2">
                       <Button
                         variant="outline"
@@ -388,15 +460,16 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+                );
+              })
+            })()}
           </TableBody>
         </Table>
       </div>
 
       {/* Editor Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="w-full max-w-xl border border-border bg-card p-6 space-y-6 my-8 shadow-2xl">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <h2 className="font-display text-xl font-black uppercase text-foreground">
@@ -589,9 +662,9 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                 </div>
               </div>
 
-              {/* Multiple Social Links Component */}
+              {/* Multiple Social Links Component (max 2) */}
               <div className="pt-2 border-t border-border">
-                <SocialLinksInput links={socialLinks} onChange={setSocialLinks} />
+                <SocialLinksInput links={socialLinks} onChange={setSocialLinks} maxLinks={2} />
               </div>
 
               {/* Submit Buttons */}

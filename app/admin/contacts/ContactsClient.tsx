@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Search, Mail, Eye, Trash2, CheckCircle, Clock, X, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -39,6 +39,15 @@ export default function ContactsClient({ initialInquiries }: ContactsClientProps
   
   // Modal states for reading messages
   const [viewingInquiry, setViewingInquiry] = useState<Inquiry | null>(null);
+
+  useEffect(() => {
+    if (viewingInquiry) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [viewingInquiry]);
 
   const handleStatusChange = async (id: string, newStatus: Inquiry["status"]) => {
     try {
@@ -266,7 +275,7 @@ export default function ContactsClient({ initialInquiries }: ContactsClientProps
 
       {/* Reader Modal Overlay */}
       {viewingInquiry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="w-full max-w-lg border border-border bg-card p-6 space-y-6 shadow-2xl">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border pb-4">

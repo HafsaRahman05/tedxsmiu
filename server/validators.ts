@@ -55,7 +55,7 @@ export const SpeakerInputSchema = z.object({
   bio: z.string().optional().nullable(),
   imageUrl: z.string().url("Invalid image URL").or(z.string().length(0)).optional().nullable(),
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
-  eventYear: z.number().int().min(1900).max(2200).default(2023),
+  eventYear: z.number().int().min(1900).max(2200).default(2026),
   status: SpeakerStatusSchema.default("ACCEPTED"),
   sortOrder: z.number().int().default(0),
 });
@@ -74,7 +74,7 @@ export const VolunteerUpdateSchema = VolunteerInputSchema.partial();
 
 export const SponsorInputSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  eventYear: z.number().int().min(1900).max(2200).default(2023),
+  eventYear: z.number().int().min(1900).max(2200).default(2026),
   logoUrl: z.string().url("Invalid logo URL").or(z.string().length(0)).optional().nullable(),
   websiteUrl: z.string().url("Invalid website URL").or(z.string().length(0)).optional().nullable(),
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),

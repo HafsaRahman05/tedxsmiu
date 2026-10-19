@@ -59,8 +59,8 @@ export default function Home() {
         {/* 3. Past Event Gallery */}
         <GalleryArchive preview />
 
-        8. Confirmed partner logos
-        <SponsorsPreview />
+        {/* 8. Confirmed partner logos
+        <SponsorsPreview /> */}
 
         {/* 9. Telemetry, Reach & Institutional Impact */}
         {/* <Stats /> */}

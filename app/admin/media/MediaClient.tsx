@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Plus, Trash2, X, Upload, Calendar, Image as ImageIcon, Video, FolderOpen } from "lucide-react";
+import { Plus, Trash2, X, Upload, Calendar, Image as ImageIcon, Video, FolderOpen, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,19 @@ interface MediaItem {
   altText: string | null;
   eventId: string | null;
   albumName: string | null;
+  year: number | null;
   createdAt: string | Date;
+}
+
+interface UploadedAsset {
+  name: string;
+  url: string;
 }
 
 interface Event {
   id: string;
   title: string;
+  date: string | Date;
 }
 
 interface MediaClientProps {
@@ -40,6 +47,7 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
   const router = useRouter();
   const [mediaList, setMediaList] = useState<MediaItem[]>(initialMedia);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -55,45 +63,123 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
   const [url, setUrl] = useState("");
   const [altText, setAltText] = useState("");
   const [eventId, setEventId] = useState("");
+  const [year, setYear] = useState(String(new Date().getFullYear()));
   const [albumPreset, setAlbumPreset] = useState<string>(HOMEPAGE_GALLERY_CATEGORIES[0]);
   const [customAlbum, setCustomAlbum] = useState("");
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedAsset[]>([]);
 
   const openCreateModal = () => {
+    setEditingMediaId(null);
     setType("IMAGE");
     setUrl("");
+    setUploadedFiles([]);
     setAltText("");
     setEventId(events[0]?.id || "");
+    setYear(
+      events[0]
+        ? String(new Date(events[0].date).getFullYear())
+        : String(new Date().getFullYear()),
+    );
     setAlbumPreset(HOMEPAGE_GALLERY_CATEGORIES[0]);
     setCustomAlbum("");
     setIsModalOpen(true);
   };
 
+  const openEditModal = (item: MediaItem) => {
+    setEditingMediaId(item.id);
+    setType(item.type);
+    setUrl(item.url);
+    setUploadedFiles([]);
+    setAltText(item.altText || "");
+    setEventId(item.eventId || "");
+    setYear(
+      String(
+        item.year ??
+          (item.eventId
+            ? new Date(events.find((event) => event.id === item.eventId)?.date || Date.now()).getFullYear()
+            : new Date().getFullYear()),
+      ),
+    );
+    if (item.albumName && HOMEPAGE_GALLERY_CATEGORIES.includes(item.albumName as (typeof HOMEPAGE_GALLERY_CATEGORIES)[number])) {
+      setAlbumPreset(item.albumName);
+      setCustomAlbum("");
+    } else if (item.albumName) {
+      setAlbumPreset("CUSTOM");
+      setCustomAlbum(item.albumName);
+    } else {
+      setAlbumPreset("NONE");
+      setCustomAlbum("");
+    }
+    setIsModalOpen(true);
+  };
+
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    e.currentTarget.value = "";
+    if (files.length === 0) return;
+
+    if ((type === "VIDEO" || editingMediaId) && files.length > 1) {
+      toast.error(editingMediaId ? "Select one replacement file" : "Upload one video at a time");
+      return;
+    }
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const uploaded = new Array<UploadedAsset | undefined>(files.length);
+      const failed: string[] = [];
+      let nextIndex = 0;
 
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
+      const uploadNext = async () => {
+        while (nextIndex < files.length) {
+          const index = nextIndex++;
+          const file = files[index];
+          const formData = new FormData();
+          formData.append("file", file);
 
-      if (data.url) {
-        setUrl(data.url);
-        toast.success("Media file uploaded successfully");
+          try {
+            const response = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
+            const data = (await response.json()) as { url?: string; error?: string };
+
+            if (!response.ok) {
+              throw new Error(data.error || `Could not upload ${file.name}`);
+            }
+            if (typeof data.url !== "string" || !data.url) {
+              throw new Error(`Upload did not return a URL for ${file.name}`);
+            }
+
+            uploaded[index] = { name: file.name, url: data.url };
+          } catch (error) {
+            console.error(`Unable to upload ${file.name}:`, error);
+            failed.push(file.name);
+          }
+        }
+      };
+
+      await Promise.all(
+        Array.from({ length: Math.min(4, files.length) }, () => uploadNext()),
+      );
+
+      const successfulUploads = uploaded.filter(
+        (asset): asset is UploadedAsset => asset !== undefined,
+      );
+      if (editingMediaId && successfulUploads[0]) {
+        setUrl(successfulUploads[0].url);
+      } else {
+        setUploadedFiles((current) => [...current, ...successfulUploads]);
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to upload file");
+
+      if (successfulUploads.length > 0) {
+        toast.success(`${successfulUploads.length} file(s) uploaded to storage`);
+      }
+      if (failed.length > 0) {
+        toast.error(`${failed.length} file(s) could not be uploaded. Select them again to retry.`);
+      }
     } finally {
       setIsUploading(false);
     }
@@ -102,42 +188,127 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!url) {
+    if (isUploading || isSaving) return;
+
+    const assetsToSave = [
+      ...(editingMediaId ? [] : uploadedFiles),
+      ...(url.trim() ? [{ name: "Media URL", url: url.trim() }] : []),
+    ];
+
+    if (assetsToSave.length === 0 || (editingMediaId && !url.trim())) {
       toast.error("Please upload a file or enter a URL");
       return;
     }
+    const mediaYear = Number(year);
+    if (!Number.isInteger(mediaYear) || mediaYear < 1900 || mediaYear > 2200) {
+      toast.error("Enter a valid year between 1900 and 2200");
+      return;
+    }
 
-    const resolvedAlbum = albumPreset === "CUSTOM" ? customAlbum.trim() : albumPreset;
+    const resolvedAlbum =
+      albumPreset === "CUSTOM"
+        ? customAlbum.trim()
+        : albumPreset === "NONE"
+          ? ""
+          : albumPreset;
 
-    const payload = {
-      type,
-      url,
-      altText: altText || null,
-      eventId: eventId || null,
-      albumName: resolvedAlbum || null,
-    };
-
+    setIsSaving(true);
     try {
-      const res = await fetch("/api/media", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const payload = {
+        type,
+        url: url.trim(),
+        altText: altText || null,
+        eventId: eventId || null,
+        albumName: resolvedAlbum || null,
+        year: mediaYear,
+      };
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to register media asset");
+      if (editingMediaId) {
+        const response = await fetch(`/api/media/${editingMediaId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = (await response.json()) as MediaItem & { error?: string };
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to update media asset");
+        }
+
+        setMediaList((current) =>
+          current.map((item) => (item.id === data.id ? data : item)),
+        );
+        toast.success("Media asset updated");
+        setIsModalOpen(false);
+        router.refresh();
+        return;
       }
 
-      const savedData = await res.json();
+      const savedItems: MediaItem[] = [];
+      const failedAssets: UploadedAsset[] = [];
 
-      setMediaList([savedData, ...mediaList]);
-      toast.success("Media asset saved successfully");
+      for (const asset of assetsToSave) {
+        try {
+          const response = await fetch("/api/media", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...payload,
+              url: asset.url,
+            }),
+          });
+          const data = (await response.json()) as MediaItem & { error?: string };
 
-      setIsModalOpen(false);
-      router.refresh();
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+          if (!response.ok) {
+            throw new Error(data.error || `Failed to save ${asset.name}`);
+          }
+          savedItems.push(data);
+        } catch (error) {
+          console.error(`Unable to save ${asset.name}:`, error);
+          failedAssets.push(asset);
+        }
+      }
+
+      if (savedItems.length > 0) {
+        setMediaList((current) => [...savedItems, ...current]);
+        router.refresh();
+      }
+
+      const failedUploadedUrls = new Set(
+        failedAssets
+          .filter((asset) => uploadedFiles.some((file) => file.url === asset.url))
+          .map((asset) => asset.url),
+      );
+      setUploadedFiles((current) =>
+        current.filter((asset) => failedUploadedUrls.has(asset.url)),
+      );
+
+      if (failedAssets.length > 0) {
+        const failedUploadedCount = failedAssets.filter(
+          (asset) => asset.name !== "Media URL",
+        ).length;
+        const failureDetails = [
+          failedUploadedCount > 0
+            ? `${failedUploadedCount} uploaded file(s) could not be saved`
+            : "",
+          failedAssets.some((asset) => asset.name === "Media URL")
+            ? "the media URL could not be saved"
+            : "",
+        ].filter(Boolean).join("; ");
+
+        toast.error(
+          `${savedItems.length > 0 ? `${savedItems.length} asset(s) saved; ` : ""}${failureDetails}. Retry the remaining assets.`,
+        );
+      } else {
+        toast.success(`${savedItems.length} media asset(s) saved successfully`);
+        setUrl("");
+        setUploadedFiles([]);
+        setIsModalOpen(false);
+      }
+
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save media asset");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -225,9 +396,18 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                 {/* Delete button overlay */}
                 <Button
                   size="icon"
+                  variant="secondary"
+                  onClick={() => openEditModal(item)}
+                  className="absolute left-2 top-2 rounded-none opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity h-8 w-8"
+                  title="Edit Asset"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon"
                   variant="destructive"
                   onClick={() => handleDelete(item.id)}
-                  className="absolute right-2 top-2 rounded-none opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                  className="absolute right-2 top-2 rounded-none opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity h-8 w-8"
                   title="Delete Asset"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -266,6 +446,11 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                       {item.albumName}
                     </span>
                   )}
+                  {item.year && (
+                    <span className="rounded-none bg-secondary border border-border px-2 py-0.5 font-mono text-[9px] font-bold text-muted-foreground uppercase">
+                      {item.year}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -279,7 +464,7 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
           <div className="w-full max-w-lg border border-border bg-card p-6 space-y-6 my-8 shadow-2xl">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <h2 className="font-display text-xl font-black uppercase text-foreground">
-                Add Media Asset
+                {editingMediaId ? "Edit Media Asset" : "Add Media Asset"}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -297,7 +482,8 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                 </Label>
                 <select
                   value={type}
-                  onChange={(e) => setType(e.target.value as any)}
+                  onChange={(e) => setType(e.target.value === "VIDEO" ? "VIDEO" : "IMAGE")}
+                  disabled={isUploading || isSaving || uploadedFiles.length > 0}
                   className="flex h-10 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="IMAGE">IMAGE</option>
@@ -313,10 +499,9 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                 <div className="flex gap-2">
                   <Input
                     type="text"
-                    required
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://..."
+                    placeholder="https://... (optional)"
                     className="rounded-none border-border bg-background focus-visible:ring-primary flex-1"
                   />
                   <label className="border border-border bg-secondary hover:border-primary p-3 flex items-center justify-center cursor-pointer transition-colors w-10">
@@ -328,12 +513,26 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                     <input
                       type="file"
                       accept={type === "IMAGE" ? "image/*" : "video/*"}
+                      multiple={type === "IMAGE" && !editingMediaId}
                       onChange={handleMediaUpload}
                       className="hidden"
                       disabled={isUploading}
                     />
                   </label>
                 </div>
+                {uploadedFiles.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {uploadedFiles.length} image(s) ready to save
+                    {uploadedFiles.length <= 3
+                      ? `: ${uploadedFiles.map((file) => file.name).join(", ")}`
+                      : `: ${uploadedFiles.slice(0, 3).map((file) => file.name).join(", ")} and ${uploadedFiles.length - 3} more`}
+                  </p>
+                )}
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  {editingMediaId
+                    ? "Choose a replacement file or update its URL and details."
+                    : "Select multiple images at once. Extract ZIP archives before selecting their images."}
+                </p>
               </div>
 
               {/* Alt Text */}
@@ -358,7 +557,14 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                   </Label>
                   <select
                     value={eventId}
-                    onChange={(e) => setEventId(e.target.value)}
+                    onChange={(e) => {
+                      const selectedEventId = e.target.value;
+                      setEventId(selectedEventId);
+                      const selectedEvent = events.find((event) => event.id === selectedEventId);
+                      if (selectedEvent) {
+                        setYear(String(new Date(selectedEvent.date).getFullYear()));
+                      }
+                    }}
                     className="flex h-10 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value="">None</option>
@@ -368,6 +574,21 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Gallery Year
+                  </Label>
+                  <Input
+                    type="number"
+                    min={1900}
+                    max={2200}
+                    required
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    className="rounded-none border-border bg-background focus-visible:ring-primary"
+                  />
                 </div>
 
                 {/* Album Category */}
@@ -380,6 +601,7 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                     onChange={(e) => setAlbumPreset(e.target.value)}
                     className="flex h-10 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary font-mono text-xs"
                   >
+                    <option value="NONE">No category</option>
                     {HOMEPAGE_GALLERY_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat} (Homepage)
@@ -414,9 +636,14 @@ export default function MediaClient({ initialMedia, events }: MediaClientProps) 
                 </Button>
                 <Button
                   type="submit"
+                  disabled={isUploading || isSaving}
                   className="rounded-none font-mono text-xs uppercase tracking-wider"
                 >
-                  Save Asset
+                  {isSaving
+                    ? "Saving..."
+                    : editingMediaId
+                      ? "Save Changes"
+                      : `Save ${uploadedFiles.length || 1} Asset${uploadedFiles.length === 1 ? "" : "s"}`}
                 </Button>
               </div>
             </form>

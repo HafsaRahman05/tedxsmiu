@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SocialLinksInput, { SocialLink } from "@/components/admin/SocialLinksInput";
+import SortableTableRow, { persistSortableOrder } from "@/components/admin/SortableTableRow";
 
 interface Sponsor {
   id: string;
@@ -27,6 +28,7 @@ interface Sponsor {
   socialLinks: SocialLink[];
   tier: "TITLE" | "GOLD" | "SILVER" | "IN_KIND" | null;
   status: "NEW" | "CONTACTED" | "NEGOTIATING" | "CONFIRMED" | "DECLINED";
+  sortOrder: number | null;
   createdAt: string | Date;
 }
 
@@ -37,6 +39,7 @@ interface SponsorsClientProps {
 export default function SponsorsClient({ initialSponsors }: SponsorsClientProps) {
   const router = useRouter();
   const [sponsorsList, setSponsorsList] = useState<Sponsor[]>(initialSponsors);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [selectedYearFilter, setSelectedYearFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -177,6 +180,36 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
     }
   };
 
+  const saveSponsorOrder = async (ids: string[]) => {
+    const previousSponsors = sponsorsList;
+    const positions = new Map(ids.map((id, index) => [id, index]));
+    setSponsorsList((current) =>
+      current
+        .map((sponsor) => ({
+          ...sponsor,
+          sortOrder: ids.length - (positions.get(sponsor.id) ?? ids.length),
+        }))
+        .sort((first, second) =>
+          (positions.get(first.id) ?? Number.MAX_SAFE_INTEGER) -
+          (positions.get(second.id) ?? Number.MAX_SAFE_INTEGER),
+        ),
+    );
+    setIsSavingOrder(true);
+
+    try {
+      await persistSortableOrder("sponsors", ids);
+      toast.success("Partner display order saved");
+      router.refresh();
+    } catch (error) {
+      setSponsorsList(previousSponsors);
+      toast.error(error instanceof Error ? error.message : "Unable to save partner order");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  const sponsorIds = sponsorsList.map((sponsor) => sponsor.id);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -221,6 +254,7 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
         <Table>
           <TableHeader className="bg-secondary/50">
             <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="w-10" aria-label="Reorder" />
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Logo</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Partner Name</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Event Year</TableHead>
@@ -241,7 +275,7 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
               if (displayed.length === 0) {
                 return (
                   <TableRow className="border-border">
-                    <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground font-mono">
+                    <TableCell colSpan={9} className="h-24 text-center text-sm text-muted-foreground font-mono">
                       No partners found for {selectedYearFilter === "ALL" ? "any edition" : `${selectedYearFilter} edition`}.
                     </TableCell>
                   </TableRow>
@@ -249,7 +283,14 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
               }
 
               return displayed.map((sponsor) => (
-                <TableRow key={sponsor.id} className="border-border hover:bg-secondary/20 transition-colors">
+                <SortableTableRow
+                  key={sponsor.id}
+                  id={sponsor.id}
+                  ids={sponsorIds}
+                  onReorder={saveSponsorOrder}
+                  disabled={isSavingOrder}
+                  className="border-border transition-colors hover:bg-secondary/20"
+                >
                   <TableCell>
                     {sponsor.logoUrl ? (
                       <div className="relative h-10 w-24 border border-border bg-secondary p-1 flex items-center justify-center overflow-hidden">
@@ -351,7 +392,7 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
+                </SortableTableRow>
               ))
             })()}
           </TableBody>

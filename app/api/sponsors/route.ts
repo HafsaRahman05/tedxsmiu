@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       .select()
       .from(sponsors)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(sponsors.createdAt));
+      .orderBy(desc(sponsors.sortOrder), desc(sponsors.createdAt));
 
     const mapped = result.map((s) => {
       let parsedSocialLinks = [];
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       eventYear: parsed.eventYear,
       tier: parsed.tier || "GOLD",
       status: parsed.status || "CONFIRMED",
+      sortOrder: parsed.sortOrder,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import AdminScrollPane from "@/components/admin/AdminScrollPane";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata = constructMetadata({
@@ -18,7 +19,8 @@ import {
   Image as ImageIcon, 
   Briefcase, 
   Mail, 
-  Globe 
+  Globe,
+  UserRound,
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -43,6 +45,7 @@ export default async function AdminLayout({
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Events", href: "/admin/events", icon: Calendar },
     { label: "Speakers", href: "/admin/speakers", icon: Users },
+    { label: "Guests", href: "/admin/guests", icon: UserRound },
     { label: "Registrations", href: "/admin/registrations", icon: Ticket },
     { label: "Partners", href: "/admin/sponsors", icon: Handshake },
     { label: "Team", href: "/admin/team", icon: Briefcase },
@@ -51,9 +54,9 @@ export default async function AdminLayout({
   ];
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="admin-scrollbars flex h-dvh overflow-hidden bg-background text-foreground">
       {/* Sidebar Navigation */}
-      <aside className="w-64 border-r border-border bg-card p-6 flex flex-col justify-between shrink-0">
+      <aside className="h-dvh w-64 shrink-0 overflow-y-auto border-r border-border bg-card p-6 flex flex-col justify-between">
         <div>
           {/* Logo */}
           <div className="mb-10 flex items-center gap-3">
@@ -99,9 +102,7 @@ export default async function AdminLayout({
       </aside>
 
       {/* Main Content Pane */}
-      <main className="flex-1 overflow-y-auto px-8 py-10 lg:px-12">
-        {children}
-      </main>
+      <AdminScrollPane>{children}</AdminScrollPane>
     </div>
   );
 }

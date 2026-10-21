@@ -203,6 +203,7 @@ export const sponsors = pgTable("sponsors", {
   eventYear: integer("Event_Year").notNull().default(2026),
   tier: sponsorTierEnum("tier"),
   status: sponsorStatusEnum("status").default("CONFIRMED").notNull(),
+  sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
 });
@@ -238,6 +239,7 @@ export const media = pgTable("media", {
   altText: text("alt_text"),
   eventId: text("event_id").references(() => events.id, { onDelete: "set null" }),
   albumName: text("album_name"),
+  year: integer("year"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -354,4 +356,3 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, { fields: [account.userId], references: [user.id] }),
 }));
-

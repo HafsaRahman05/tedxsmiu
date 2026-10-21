@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SocialLinksInput, { SocialLink } from "@/components/admin/SocialLinksInput";
+import SortableTableRow, { persistSortableOrder } from "@/components/admin/SortableTableRow";
 
 interface TeamMember {
   id: string;
@@ -80,6 +81,7 @@ const PREDEFINED_ROLES = [
 export default function TeamClient({ initialTeam, events }: TeamClientProps) {
   const router = useRouter();
   const [teamList, setTeamList] = useState<TeamMember[]>(initialTeam);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [teamEditionFilter, setTeamEditionFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -279,6 +281,36 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
     return events.find((e) => e.id === id)?.title || "Unknown Event";
   };
 
+  const saveTeamOrder = async (ids: string[]) => {
+    const previousTeam = teamList;
+    const positions = new Map(ids.map((id, index) => [id, index]));
+    setTeamList((current) =>
+      current
+        .map((member) => ({
+          ...member,
+          sortOrder: ids.length - (positions.get(member.id) ?? ids.length),
+        }))
+        .sort((first, second) =>
+          (positions.get(first.id) ?? Number.MAX_SAFE_INTEGER) -
+          (positions.get(second.id) ?? Number.MAX_SAFE_INTEGER),
+        ),
+    );
+    setIsSavingOrder(true);
+
+    try {
+      await persistSortableOrder("team", ids);
+      toast.success("Team display order saved");
+      router.refresh();
+    } catch (error) {
+      setTeamList(previousTeam);
+      toast.error(error instanceof Error ? error.message : "Unable to save team order");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  const teamIds = teamList.map((member) => member.id);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -327,6 +359,7 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
         <Table>
           <TableHeader className="bg-secondary/50">
             <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="w-10" aria-label="Reorder" />
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Photo</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Name / Info</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Department</TableHead>
@@ -347,7 +380,7 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
               if (displayed.length === 0) {
                 return (
                   <TableRow className="border-border">
-                    <TableCell colSpan={7} className="p-8 text-center text-sm text-muted-foreground font-mono">
+                    <TableCell colSpan={8} className="p-8 text-center text-sm text-muted-foreground font-mono">
                       No team profiles found for {teamEditionFilter === "ALL" ? "any edition" : `${teamEditionFilter} edition`}.
                     </TableCell>
                   </TableRow>
@@ -357,7 +390,14 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
               return displayed.map((member) => {
                 const year = getEventYear(member.eventId);
                 return (
-                  <TableRow key={member.id} className="border-border hover:bg-secondary/20 transition-colors">
+                  <SortableTableRow
+                    key={member.id}
+                    id={member.id}
+                    ids={teamIds}
+                    onReorder={saveTeamOrder}
+                    disabled={isSavingOrder}
+                    className="border-border transition-colors hover:bg-secondary/20"
+                  >
                     <TableCell>
                       {member.imageUrl ? (
                         <div className="relative h-12 w-12 rounded-full border border-border bg-background overflow-hidden">
@@ -459,7 +499,7 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
+                  </SortableTableRow>
                 );
               })
             })()}

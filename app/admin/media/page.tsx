@@ -15,6 +15,7 @@ export default async function AdminMediaPage() {
     .select({
       id: events.id,
       title: events.title,
+      date: events.date,
     })
     .from(events)
     .where(isNull(events.deletedAt))

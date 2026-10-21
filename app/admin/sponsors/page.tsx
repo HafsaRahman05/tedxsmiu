@@ -9,7 +9,7 @@ export default async function AdminSponsorsPage() {
   const rawSponsors = await db
     .select()
     .from(sponsors)
-    .orderBy(desc(sponsors.createdAt));
+    .orderBy(desc(sponsors.sortOrder), desc(sponsors.createdAt));
 
   const initialSponsors = rawSponsors.map((s) => {
     let parsedSocialLinks = [];

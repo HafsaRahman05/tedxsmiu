@@ -1,9 +1,15 @@
 "use client";
 
+import type { MotionValue } from "framer-motion";
 import { motion, useScroll } from "framer-motion";
 
-export default function ScrollProgress() {
+export default function ScrollProgress({
+  progress,
+}: {
+  progress?: MotionValue<number>;
+}) {
   const { scrollYProgress } = useScroll();
+  const scrollProgress = progress ?? scrollYProgress;
 
   return (
     <div
@@ -12,7 +18,7 @@ export default function ScrollProgress() {
     >
       <motion.div
         className="relative h-full origin-top bg-red"
-        style={{ scaleY: scrollYProgress }}
+        style={{ scaleY: scrollProgress }}
       >
         <span className="absolute -bottom-[5px] -left-[5px] h-[3px] w-[13px] bg-red shadow-[0_0_12px_2px_rgba(235,0,40,0.7)]" />
       </motion.div>

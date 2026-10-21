@@ -162,6 +162,17 @@ html::-webkit-scrollbar {
   display: none;
 }
 
+.admin-scrollbars,
+.admin-scrollbars * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-scrollbars::-webkit-scrollbar,
+.admin-scrollbars *::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   background: var(--color-ink);
   color: var(--color-paper);

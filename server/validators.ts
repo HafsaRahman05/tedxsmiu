@@ -80,6 +80,7 @@ export const SponsorInputSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   tier: SponsorTierSchema.optional().nullable(),
   status: SponsorStatusSchema.default("CONFIRMED"),
+  sortOrder: z.number().int().default(0),
 });
 
 export const SponsorUpdateSchema = SponsorInputSchema.partial();
@@ -103,7 +104,12 @@ export const MediaInputSchema = z.object({
   altText: z.string().optional().nullable(),
   eventId: z.string().optional().nullable(),
   albumName: z.string().optional().nullable(),
+  year: z.number().int().min(1900).max(2200).optional().nullable(),
 });
+
+export const MediaUpdateSchema = MediaInputSchema.extend({
+  url: z.string().url("Invalid media URL").or(z.string().startsWith("/")),
+}).partial();
 
 export const TeamInputSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -118,6 +124,22 @@ export const TeamInputSchema = z.object({
 });
 
 export const TeamUpdateSchema = TeamInputSchema.partial();
+
+export const GuestInputSchema = z.object({
+  guestName: z.string().min(2, "Name must be at least 2 characters"),
+  guestType: z.string().min(2).default("VIP Guest"),
+  roleTitle: z.string().min(2, "Role must be at least 2 characters"),
+  organizationHeading: z.string().optional().nullable(),
+  bioDetails: z.string().optional().nullable(),
+  imageUrl: z.string().url("Invalid image URL").or(z.string().length(0)).optional().nullable(),
+  socialLinks: z.array(SocialLinkSchema).optional().nullable(),
+  eventId: z.string().optional().nullable(),
+  eventYear: z.number().int().min(1900).max(2200).default(2026),
+  sortOrder: z.number().int().default(0),
+  status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
+});
+
+export const GuestUpdateSchema = GuestInputSchema.partial();
 
 export const ContactInputSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

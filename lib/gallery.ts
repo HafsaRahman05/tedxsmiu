@@ -5,6 +5,7 @@ export type GalleryMedia = {
   altText: string | null;
   eventId: string | null;
   albumName: string | null;
+  year: number | null;
   createdAt: string | Date;
 };
 
@@ -31,6 +32,7 @@ export type GalleryCollection = {
   albumName: string | null;
   items: GalleryMedia[];
   talks: NonNullable<GalleryEvent["eventSpeakers"]>;
+  acrossEvents?: boolean;
 };
 
 export function encodeGalleryAlbum(albumName: string | null) {
@@ -59,19 +61,25 @@ export function decodeGalleryAlbum(albumKey: string): string | null | undefined 
 }
 
 export function galleryCollectionHref(collection: GalleryCollection) {
+  if (collection.acrossEvents) {
+    return `/gallery/category/${encodeGalleryAlbum(collection.albumName)}`;
+  }
   return `/gallery/${collection.eventId}/${encodeGalleryAlbum(collection.albumName)}`;
 }
 
 export function buildGalleryCollections(
   events: GalleryEvent[],
   media: GalleryMedia[],
+  groupAcrossEvents = false,
 ): GalleryCollection[] {
   const eventsById = new Map(events.map((event) => [event.id, event]));
   const collections = new Map<string, GalleryCollection>();
 
   for (const item of media) {
-    const eventId = item.eventId ?? "community";
-    const key = `${eventId}:${item.albumName ?? ""}`;
+    const eventId = groupAcrossEvents ? "category" : item.eventId ?? "community";
+    const key = groupAcrossEvents
+      ? `category:${item.albumName ?? ""}`
+      : `${eventId}:${item.albumName ?? ""}`;
     const event = item.eventId ? eventsById.get(item.eventId) : undefined;
     let collection = collections.get(key);
 
@@ -79,12 +87,13 @@ export function buildGalleryCollections(
       collection = {
         key,
         eventId,
-        eventTitle: event?.title ?? "TEDxSMIU Community",
-        eventDate: event?.date ?? null,
-        coverImageUrl: event?.coverImageUrl ?? null,
+        eventTitle: groupAcrossEvents ? "TEDxSMIU" : event?.title ?? "TEDxSMIU Community",
+        eventDate: groupAcrossEvents ? null : event?.date ?? null,
+        coverImageUrl: groupAcrossEvents ? null : event?.coverImageUrl ?? null,
         albumName: item.albumName,
         items: [],
-        talks: event?.eventSpeakers ?? [],
+        talks: groupAcrossEvents ? [] : event?.eventSpeakers ?? [],
+        acrossEvents: groupAcrossEvents,
       };
       collections.set(key, collection);
     }
@@ -92,13 +101,14 @@ export function buildGalleryCollections(
     collection.items.push(item);
   }
 
-  for (const event of events) {
+  if (!groupAcrossEvents) for (const event of events) {
     const talks = event.eventSpeakers ?? [];
     if (!talks.some((talk) => talk.youtubeUrl)) continue;
 
-    const eventCollection = Array.from(collections.values()).find(
+    const speakerCollections = Array.from(collections.values()).filter(
       (collection) => collection.eventId === event.id && collection.albumName === "Speakers & talks",
     );
+    const eventCollection = speakerCollections[0];
 
     if (eventCollection) {
       eventCollection.talks = talks;
@@ -119,9 +129,8 @@ export function buildGalleryCollections(
   }
 
   return Array.from(collections.values()).sort((a, b) => {
-    const dateDifference =
-      new Date(b.eventDate ?? 0).getTime() - new Date(a.eventDate ?? 0).getTime();
-    if (dateDifference !== 0) return dateDifference;
-    return (a.albumName ?? "").localeCompare(b.albumName ?? "");
+    const albumDifference = (a.albumName ?? "").localeCompare(b.albumName ?? "");
+    if (albumDifference !== 0) return albumDifference;
+    return a.eventTitle.localeCompare(b.eventTitle);
   });
 }

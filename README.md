@@ -15,16 +15,19 @@ Install dependencies, then copy the environment template and fill in real values
 ```bash
 npm install
 copy .env.local.example .env.local
+npm run db:migrate
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+Set `DATABASE_URL` in `.env.local` before running the migration command.
 
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | Start the local site |
 | `npm run build` | Build for production |
 | `npm start` | Serve the production build |
+| `npm run db:migrate` | Apply pending PostgreSQL migrations using `DATABASE_URL` from `.env.local` |
 
 ## Environment
 
@@ -43,6 +46,8 @@ The seed route is `GET /api/admin/seed` and requires the `x-seed-secret` header 
 
 ## Admin media on the homepage
 
-In **Media Library**, set the type to **VIDEO**, upload a file or paste a URL, attach it to an event, and choose a gallery category. Uploaded videos can be MP4, WebM, MOV, or MKV, up to 50 MB.
+In **Media Library**, upload one or multiple images at once, or upload a single video/paste a URL. ZIP archives must be extracted before selecting their images. Choose the event, gallery category, and year, then save the assets to store their Cloudinary URLs and year in the database. Uploaded images can be up to 10 MB each; videos can be MP4, WebM, MOV, or MKV, up to 50 MB.
 
-That album appears in the homepage section **Where ideas ignite**. The homepage shows the first four albums; opening an album plays the video. A YouTube talk is added on the speaker inside **Events** and shows under **Speakers & talks**.
+That album appears in the homepage section **Where ideas ignite** and on the gallery page, grouped by event and category without year-based sorting or labels. The homepage shows the first four albums; opening an event album displays that event's images and videos for its year. Click a photo to expand it and download it from the preview. Existing media assets can be edited in **Media Library**. A YouTube talk is added on the speaker inside **Events** and shows under **Speakers & talks**.
+
+Before deploying the existing media-year change, apply `drizzle/0001_add_media_year.sql` to add the nullable year column for existing media. Run `npm run db:migrate` with `DATABASE_URL` configured in `.env.local` to add the sponsor ordering column required by drag-and-drop ordering. The admin ordering controls save directly to the configured PostgreSQL database through the app; no database GUI is needed.

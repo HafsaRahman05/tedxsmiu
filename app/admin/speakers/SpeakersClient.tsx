@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SocialLinksInput, { SocialLink } from "@/components/admin/SocialLinksInput";
+import SortableTableRow, { persistSortableOrder } from "@/components/admin/SortableTableRow";
 
 interface Speaker {
   id: string;
@@ -40,6 +41,7 @@ interface SpeakersClientProps {
 export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps) {
   const router = useRouter();
   const [speakersList, setSpeakersList] = useState<Speaker[]>(initialSpeakers);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [selectedYearFilter, setSelectedYearFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -203,6 +205,36 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
     }
   };
 
+  const saveSpeakerOrder = async (ids: string[]) => {
+    const previousSpeakers = speakersList;
+    const positions = new Map(ids.map((id, index) => [id, index]));
+    setSpeakersList((current) =>
+      current
+        .map((speaker) => ({
+          ...speaker,
+          sortOrder: ids.length - (positions.get(speaker.id) ?? ids.length),
+        }))
+        .sort((first, second) =>
+          (positions.get(first.id) ?? Number.MAX_SAFE_INTEGER) -
+          (positions.get(second.id) ?? Number.MAX_SAFE_INTEGER),
+        ),
+    );
+    setIsSavingOrder(true);
+
+    try {
+      await persistSortableOrder("speakers", ids);
+      toast.success("Speaker display order saved");
+      router.refresh();
+    } catch (error) {
+      setSpeakersList(previousSpeakers);
+      toast.error(error instanceof Error ? error.message : "Unable to save speaker order");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  const speakerIds = speakersList.map((speaker) => speaker.id);
+
   return (
     <div className="space-y-8">
       {/* Action Header */}
@@ -247,6 +279,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
         <Table>
           <TableHeader className="bg-secondary/50">
             <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="w-10" aria-label="Reorder" />
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Photo</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Speaker & Headline</TableHead>
               <TableHead className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Description</TableHead>
@@ -267,7 +300,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
               if (displayed.length === 0) {
                 return (
                   <TableRow className="border-border">
-                    <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground font-mono">
+                    <TableCell colSpan={9} className="h-24 text-center text-sm text-muted-foreground font-mono">
                       No speaker profiles found for {selectedYearFilter === "ALL" ? "any edition" : `${selectedYearFilter} edition`}.
                     </TableCell>
                   </TableRow>
@@ -275,7 +308,14 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
               }
 
               return displayed.map((speaker) => (
-                <TableRow key={speaker.id} className="border-border hover:bg-secondary/20 transition-colors">
+                <SortableTableRow
+                  key={speaker.id}
+                  id={speaker.id}
+                  ids={speakerIds}
+                  onReorder={saveSpeakerOrder}
+                  disabled={isSavingOrder}
+                  className="border-border transition-colors hover:bg-secondary/20"
+                >
                   <TableCell>
                     {speaker.imageUrl ? (
                       <div className="relative h-12 w-12 rounded-full border border-border bg-background overflow-hidden">
@@ -388,7 +428,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
+                </SortableTableRow>
               ))
             })()}
           </TableBody>

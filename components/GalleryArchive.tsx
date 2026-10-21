@@ -64,16 +64,14 @@ function CollectionCard({
   collection: GalleryCollection;
   index: number;
 }) {
-  const imageItems = collection.items.filter((item) => item.type === "IMAGE").slice(0, 4);
-  const coverImage = imageItems[0]?.url ?? collection.coverImageUrl;
+  const coverImage =
+    collection.items.find((item) => item.type === "IMAGE")?.url ??
+    collection.coverImageUrl;
   const category = collection.albumName || "Event highlights";
-  const date = collection.eventDate
-    ? new Date(collection.eventDate).toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      })
-    : null;
   const mediaCount = collection.items.length;
+  const eventName =
+    collection.eventTitle.replace(/\b(?:19|20)\d{2}\b/g, "").replace(/\s{2,}/g, " ").trim() ||
+    "TEDxSMIU";
 
   return (
     <Link
@@ -82,29 +80,10 @@ function CollectionCard({
         index % 5 === 0 ? "md:row-span-2 md:min-h-[470px]" : ""
       } ${index % 5 === 3 ? "md:col-span-2" : ""}`}
     >
-      {imageItems.length > 1 ? (
-        <div className="absolute inset-0 grid grid-cols-2 gap-1 p-1 transition-transform duration-700 group-hover:scale-[1.03]">
-          {imageItems.map((item, imageIndex) => (
-            <div
-              key={item.id}
-              className={`relative overflow-hidden ${
-                imageIndex === 0 && imageItems.length === 3 ? "row-span-2" : ""
-              }`}
-            >
-              <Image
-                src={item.url}
-                alt={item.altText || category}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      ) : coverImage ? (
+      {coverImage ? (
         <Image
           src={coverImage}
-          alt={category}
+          alt={collection.albumName || collection.eventTitle}
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
           className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
@@ -116,33 +95,14 @@ function CollectionCard({
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/5" />
+      <span className="absolute left-5 bottom-5 border border-primary/70 bg-black/70 px-3 py-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur sm:left-7 sm:bottom-7">
+        {category}
+      </span>
       {collection.items.some((item) => item.type === "VIDEO") && (
         <span className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center border border-white/30 bg-black/60 text-white backdrop-blur">
           <Play className="h-4 w-4 fill-current" />
         </span>
       )}
-      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-        <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/70">
-          <span className="border border-primary/70 bg-primary/15 px-2.5 py-1 text-white">
-            {category}
-          </span>
-          {date && <span>{date}</span>}
-        </div>
-        <h3 className="max-w-xl font-helvetica text-2xl font-black uppercase leading-tight text-white sm:text-3xl">
-          {collection.eventTitle}
-        </h3>
-        <div className="mt-4 flex items-center justify-between border-t border-white/20 pt-3">
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/70">
-            {mediaCount} {mediaCount === 1 ? "moment" : "moments"}
-            {collection.talks.some((talk) => talk.youtubeUrl)
-              ? ` · ${collection.talks.filter((talk) => talk.youtubeUrl).length} talks`
-              : ""}
-          </span>
-          <span className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-white transition-colors group-hover:text-primary">
-            Explore <ArrowUpRight className="h-4 w-4" />
-          </span>
-        </div>
-      </div>
     </Link>
   );
 }
@@ -157,7 +117,6 @@ export default function GalleryArchive({
   const [media, setMedia] = useState<GalleryMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("All moments");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -195,8 +154,8 @@ export default function GalleryArchive({
   }, [eventId]);
 
   const collections = useMemo(
-    () => buildGalleryCollections(events, media),
-    [events, media],
+    () => buildGalleryCollections(events, media, !eventId),
+    [events, media, eventId],
   );
   const eventCollections = useMemo(
     () => eventId
@@ -204,25 +163,9 @@ export default function GalleryArchive({
       : collections,
     [collections, eventId],
   );
-  const categories = useMemo(
-    () => [
-      "All moments",
-      ...Array.from(
-        new Set(eventCollections.map((collection) => collection.albumName || "Event highlights")),
-      ),
-    ],
-    [eventCollections],
-  );
-  const filteredCollections =
-    activeCategory === "All moments"
-      ? eventCollections
-      : eventCollections.filter(
-          (collection) =>
-            (collection.albumName || "Event highlights") === activeCategory,
-        );
   const visibleCollections = preview
-    ? filteredCollections.slice(0, 4)
-    : filteredCollections;
+    ? eventCollections.slice(0, 4)
+    : eventCollections;
 
   return (
     <section
@@ -256,7 +199,7 @@ export default function GalleryArchive({
                 : "A living archive of the people, conversations, and moments that bring the TEDxSMIU community together."}
             </p>
           </div>
-          {preview && (!eventId || filteredCollections.length > 0) && (
+          {preview && (!eventId || eventCollections.length > 0) && (
             <Link
               href={eventId ? `/gallery/${eventId}/all` : "/gallery"}
               className="inline-flex items-center gap-2 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-[0.12em] sm:tracking-[0.15em] text-primary hover:text-white transition-colors underline underline-offset-8"
@@ -265,25 +208,6 @@ export default function GalleryArchive({
             </Link>
           )}
         </div>
-
-        {!preview && categories.length > 1 && (
-          <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                onClick={() => setActiveCategory(category)}
-                className={`shrink-0  px-4 py-2.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] transition-colors ${
-                  activeCategory === category
-                    ? "border-primary bg-primary text-white"
-                    : "border-white/15 bg-white/[0.02] text-neutral-400 hover:border-primary/60 hover:text-white"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        )}
 
         {loading ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -337,7 +261,7 @@ export default function GalleryArchive({
           </div>
         )}
 
-        {!preview && !loading && !error && filteredCollections.length > 0 && (
+        {!preview && !loading && !error && eventCollections.length > 0 && (
           <p className="mt-5 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-500">
             <CalendarDays className="h-3.5 w-3.5" />
             Albums and categories are updated by the TEDxSMIU team

@@ -1,15 +1,26 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDownToLine, ArrowLeft, ExternalLink, Play } from "lucide-react";
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { ArrowDownToLine, ExternalLink, Play } from "lucide-react";
+import { and, asc, desc, eq, isNull, or } from "drizzle-orm";
 import PageShell from "@/components/PageShell";
 import { db } from "@/lib/db";
 import { events, eventSpeakers, media } from "@/lib/db/schema";
 import { decodeGalleryAlbum } from "@/lib/gallery";
 import { cleanImageUrl } from "@/lib/utils";
 import { constructMetadata } from "@/lib/seo";
+import GalleryImagePreview from "@/components/GalleryImagePreview";
+
+const MOSAIC_TILE_CLASSES = [
+  "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2 lg:col-span-2 lg:row-span-2",
+  "col-span-1 row-span-1 sm:col-span-2 sm:row-span-1 lg:col-span-2 lg:row-span-1",
+  "col-span-1 row-span-2 sm:col-span-1 sm:row-span-2 lg:col-span-1 lg:row-span-2",
+  "col-span-2 row-span-1 sm:col-span-1 sm:row-span-1 lg:col-span-2 lg:row-span-1",
+  "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 lg:col-span-1 lg:row-span-1",
+  "col-span-1 row-span-2 sm:col-span-2 sm:row-span-1 lg:col-span-1 lg:row-span-2",
+  "col-span-2 row-span-1 sm:col-span-2 sm:row-span-2 lg:col-span-2 lg:row-span-1",
+  "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 lg:col-span-1 lg:row-span-1",
+] as const;
 
 type Props = { params: Promise<{ eventId: string; albumKey: string }> };
 
@@ -76,12 +87,13 @@ function getFileName(url: string, fallback: string) {
 
 export default async function GalleryCollectionPage({ params }: Props) {
   const { eventId, albumKey } = await params;
+  const acrossEvents = eventId === "category";
   const showAllAlbums = albumKey === "all";
   const albumName = showAllAlbums ? null : decodeGalleryAlbum(albumKey);
   if (albumName === undefined) notFound();
 
   const event =
-    eventId === "community"
+    eventId === "community" || acrossEvents
       ? null
       : await db.query.events.findFirst({
           where: and(eq(events.id, eventId), isNull(events.deletedAt)),
@@ -93,13 +105,19 @@ export default async function GalleryCollectionPage({ params }: Props) {
           },
         });
 
-  if (eventId !== "community" && !event) notFound();
+  if (eventId !== "community" && !acrossEvents && !event) notFound();
 
-  const conditions = [
-    eventId === "community" ? isNull(media.eventId) : eq(media.eventId, eventId),
-  ];
+  const conditions = acrossEvents
+    ? []
+    : [eventId === "community" ? isNull(media.eventId) : eq(media.eventId, eventId)];
   if (!showAllAlbums) {
     conditions.push(albumName === null ? isNull(media.albumName) : eq(media.albumName, albumName));
+  }
+  if (event) {
+    conditions.push(or(
+      eq(media.year, new Date(event.date).getFullYear()),
+      isNull(media.year),
+    )!);
   }
   const assets = await db
     .select()
@@ -114,7 +132,12 @@ export default async function GalleryCollectionPage({ params }: Props) {
   const title = showAllAlbums
     ? "Event Gallery"
     : albumName || "Community highlights";
-  const eventTitle = event?.title ?? "TEDxSMIU Community";
+  const displayTitle = event
+    ? `${title} · ${new Date(event.date).getFullYear()}`
+    : title;
+  const eventTitle = acrossEvents
+    ? "All event years"
+    : event?.title ?? "TEDxSMIU Community";
 
   return (
     <PageShell>
@@ -125,17 +148,11 @@ export default async function GalleryCollectionPage({ params }: Props) {
         />
         <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black/90 via-black/75 to-black/55" />
         <div className="relative z-10 mx-auto max-w-7xl">
-          <Link
-            href="/gallery"
-            className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.17em] text-neutral-400 transition-colors hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" /> All moments
-          </Link>
           <p className="mt-10 font-mono text-[10px] font-bold uppercase tracking-[0.23em] text-primary">
             {eventTitle}
           </p>
           <h1 className="mt-3 max-w-4xl font-helvetica text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
-            {title}
+            {displayTitle}
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-neutral-300 sm:text-base">
             {assets.length} {assets.length === 1 ? "moment" : "moments"}
@@ -148,21 +165,9 @@ export default async function GalleryCollectionPage({ params }: Props) {
       {assets.length > 0 && (
         <section className="bg-ink px-4 py-12 sm:px-6 sm:py-16 lg:px-12">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-7 flex items-end justify-between border-b border-white/10 pb-4">
-              <div>
-                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-primary">
-                  Captured moments
-                </p>
-                <h2 className="mt-2 font-helvetica text-2xl font-black uppercase text-white sm:text-3xl">
-                  Photos & video
-                </h2>
-              </div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500">
-                {assets.length} files
-              </span>
-            </div>
+            
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid auto-rows-[110px] grid-flow-dense grid-cols-2 gap-2 sm:auto-rows-[150px] sm:grid-cols-4 sm:gap-3 lg:auto-rows-[180px] lg:grid-cols-6 lg:gap-4">
               {assets.map((asset, index) => {
                 const embedUrl =
                   asset.type === "VIDEO" ? getEmbedUrl(asset.url) : null;
@@ -170,18 +175,13 @@ export default async function GalleryCollectionPage({ params }: Props) {
                 return (
                   <article
                     key={asset.id}
-                    className={`overflow-hidden border border-white/10 bg-white/[0.025] ${
-                      index === 0 && assets.length > 3 ? "sm:row-span-2" : ""
-                    }`}
+                    className={`relative min-h-0 overflow-hidden border border-white/10 bg-white/[0.025] ${MOSAIC_TILE_CLASSES[index % MOSAIC_TILE_CLASSES.length]}`}
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[#160a0d]">
+                    <div className="absolute inset-0 overflow-hidden bg-[#160a0d]">
                       {asset.type === "IMAGE" ? (
-                        <Image
+                        <GalleryImagePreview
                           src={cleanImageUrl(asset.url, "/images/hero/hero1.png")}
-                          alt={asset.altText || title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          className="object-cover"
+                          alt={asset.altText || displayTitle}
                         />
                       ) : embedUrl ? (
                         <iframe
@@ -208,11 +208,11 @@ export default async function GalleryCollectionPage({ params }: Props) {
                           download={getFileName(asset.url, "tedxsmiu-moment")}
                           target="_blank"
                           rel="noreferrer"
-                          className="absolute right-3 top-3 inline-flex items-center gap-2 border border-white/30 bg-black/75 px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur transition-colors hover:border-primary hover:bg-primary"
+                          className="absolute right-3 top-3 inline-flex items-center gap-2 px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-white  transition-colors hover:text-primary hover:text-primary"
                           aria-label={`Download ${asset.altText || "image"}`}
                         >
-                          <ArrowDownToLine className="h-3.5 w-3.5" />
-                          Download
+                          <ArrowDownToLine className="h-4.5 w-4.5" />
+
                         </a>
                       )}
                       {asset.type === "VIDEO" && !embedUrl && (

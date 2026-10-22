@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDownToLine, ExternalLink, Play } from "lucide-react";
+import { ArrowDownToLine, ArrowLeft, ExternalLink, Play } from "lucide-react";
 import { and, asc, desc, eq, isNull, or } from "drizzle-orm";
 import PageShell from "@/components/PageShell";
 import { db } from "@/lib/db";
@@ -148,6 +149,16 @@ export default async function GalleryCollectionPage({ params }: Props) {
         />
         <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black/90 via-black/75 to-black/55" />
         <div className="relative z-10 mx-auto max-w-7xl">
+          <Link
+            href={
+              event
+                ? `/gallery?year=${new Date(event.date).getFullYear()}`
+                : "/gallery"
+            }
+            className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.17em] text-neutral-400 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to gallery
+          </Link>
           <p className="mt-10 font-mono text-[10px] font-bold uppercase tracking-[0.23em] text-primary">
             {eventTitle}
           </p>

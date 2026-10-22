@@ -11,13 +11,17 @@ import {
   type GalleryEvent,
   type GalleryMedia,
 } from "@/lib/gallery";
+import { editionYearFromEvent } from "@/lib/editions";
 
 type Props = {
   preview?: boolean;
   eventId?: string;
   eventTitle?: string;
   year?: number;
+  initialEdition?: string;
 };
+
+const PINNED_EDITIONS = [2026, 2023];
 
 const PLACEHOLDER_CATEGORIES = [
   "Main stage moments",
@@ -25,6 +29,17 @@ const PLACEHOLDER_CATEGORIES = [
   "Speakers & talks",
   "Community highlights",
 ];
+
+function readEdition(value?: string | null) {
+  if (!value || value.toLowerCase() === "all") return "All";
+  return /^(19|20)\d{2}$/.test(value) ? value : "All";
+}
+
+function mediaEditionYear(item: GalleryMedia, events: GalleryEvent[]) {
+  if (item.year) return item.year;
+  const event = events.find((candidate) => candidate.id === item.eventId);
+  return editionYearFromEvent(event);
+}
 
 function GalleryPlaceholder({
   index,
@@ -68,10 +83,6 @@ function CollectionCard({
     collection.items.find((item) => item.type === "IMAGE")?.url ??
     collection.coverImageUrl;
   const category = collection.albumName || "Event highlights";
-  const mediaCount = collection.items.length;
-  const eventName =
-    collection.eventTitle.replace(/\b(?:19|20)\d{2}\b/g, "").replace(/\s{2,}/g, " ").trim() ||
-    "TEDxSMIU";
 
   return (
     <Link
@@ -112,11 +123,14 @@ export default function GalleryArchive({
   eventId,
   eventTitle,
   year,
+  initialEdition,
 }: Props) {
   const [events, setEvents] = useState<GalleryEvent[]>([]);
   const [media, setMedia] = useState<GalleryMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [edition, setEdition] = useState(() => readEdition(initialEdition));
+  const showEditionFilter = !preview && !eventId;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -153,9 +167,31 @@ export default function GalleryArchive({
     return () => controller.abort();
   }, [eventId]);
 
+  const editions = useMemo(() => {
+    const years = new Set<number>(PINNED_EDITIONS);
+    for (const event of events) {
+      const eventYear = editionYearFromEvent(event);
+      if (eventYear) years.add(eventYear);
+    }
+    for (const item of media) {
+      const itemYear = mediaEditionYear(item, events);
+      if (itemYear) years.add(itemYear);
+    }
+    return ["All", ...Array.from(years).sort((yearA, yearB) => yearB - yearA).map(String)];
+  }, [events, media]);
+
+  const scopedMedia = useMemo(() => {
+    if (!showEditionFilter || edition === "All") return media;
+    return media.filter((item) => String(mediaEditionYear(item, events) ?? "") === edition);
+  }, [edition, events, media, showEditionFilter]);
+
   const collections = useMemo(
-    () => buildGalleryCollections(events, media, !eventId),
-    [events, media, eventId],
+    () => buildGalleryCollections(
+      events,
+      scopedMedia,
+      showEditionFilter ? edition === "All" : !eventId,
+    ),
+    [edition, eventId, events, scopedMedia, showEditionFilter],
   );
   const eventCollections = useMemo(
     () => eventId
@@ -166,6 +202,20 @@ export default function GalleryArchive({
   const visibleCollections = preview
     ? eventCollections.slice(0, 4)
     : eventCollections;
+
+  useEffect(() => {
+    if (!showEditionFilter) return;
+    const syncFromUrl = () => setEdition(readEdition(new URLSearchParams(window.location.search).get("year")));
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [showEditionFilter]);
+
+  const chooseEdition = (next: string) => {
+    setEdition(next);
+    if (!showEditionFilter) return;
+    const url = next === "All" ? "/gallery" : `/gallery?year=${next}`;
+    window.history.pushState(null, "", url);
+  };
 
   return (
     <section
@@ -184,7 +234,11 @@ export default function GalleryArchive({
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
               <span className="h-px w-5 bg-primary" />
-              {eventTitle ? `TEDxSMIU ${year ?? ""}` : "From our events"}
+              {eventTitle
+                ? `TEDxSMIU ${year ?? ""}`
+                : showEditionFilter && edition !== "All"
+                  ? `TEDxSMIU ${edition}`
+                  : "From our events"}
             </span>
             <h2 className="mt-4 font-helvetica text-4xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-6xl">
               {eventTitle ? (
@@ -196,7 +250,9 @@ export default function GalleryArchive({
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-neutral-400 sm:text-base">
               {eventTitle
                 ? `Photos, videos, and speaker talks from ${eventTitle}.`
-                : "A living archive of the people, conversations, and moments that bring the TEDxSMIU community together."}
+                : showEditionFilter && edition !== "All"
+                  ? `Photographs, videos, and talks from the ${edition} edition.`
+                  : "A living archive of the people, conversations, and moments that bring the TEDxSMIU community together."}
             </p>
           </div>
           {preview && (!eventId || eventCollections.length > 0) && (
@@ -208,6 +264,30 @@ export default function GalleryArchive({
             </Link>
           )}
         </div>
+
+        {showEditionFilter && (
+          <div className="mb-8">
+            <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.22em] text-neutral-400 sm:text-sm">
+              Event edition
+            </p>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {editions.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => chooseEdition(option)}
+                  className={`shrink-0 border px-5 py-3 font-mono text-sm font-bold uppercase tracking-[0.12em] transition-colors sm:px-6 sm:py-3.5 sm:text-base ${
+                    edition === option
+                      ? "border-primary bg-primary text-white"
+                      : "border-white/15 bg-white/[0.02] text-neutral-400 hover:border-primary/60 hover:text-white"
+                  }`}
+                >
+                  {option === "All" ? "All events" : option}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -232,6 +312,15 @@ export default function GalleryArchive({
             >
               Try again
             </button>
+          </div>
+        ) : showEditionFilter && edition !== "All" && visibleCollections.length === 0 ? (
+          <div className="border border-white/10 bg-white/[0.03] px-6 py-14 text-center">
+            <p className="font-helvetica text-2xl font-black uppercase text-white">
+              TEDxSMIU {edition}
+            </p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-neutral-400">
+              Photographs from this edition will appear here once they are added to the {edition} event.
+            </p>
           </div>
         ) : visibleCollections.length > 0 ? (
           <div className="grid auto-rows-[minmax(230px,auto)] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -261,7 +350,7 @@ export default function GalleryArchive({
           </div>
         )}
 
-        {!preview && !loading && !error && eventCollections.length > 0 && (
+        {!preview && !loading && !error && visibleCollections.length > 0 && (
           <p className="mt-5 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-500">
             <CalendarDays className="h-3.5 w-3.5" />
             Albums and categories are updated by the TEDxSMIU team

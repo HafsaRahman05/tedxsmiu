@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Globe, Mail } from "lucide-react";
@@ -11,6 +11,7 @@ import {
   FaSquareXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
+import { teamMemberEditionYear } from "@/lib/editions";
 
 type TeamMemberRecord = {
   id: string;
@@ -73,6 +74,13 @@ function normalizeSocialLinks(value: TeamMemberRecord["socialLinks"]): TeamSocia
   });
 }
 
+type TeamEvent = {
+  id: string;
+  title: string;
+  slug: string;
+  date: string | null;
+};
+
 const teamSections = [
   { key: "Chief", label: "Chief Leadership" },
   { key: "Lead", label: "Leads & Heads" },
@@ -80,8 +88,24 @@ const teamSections = [
   { key: "Core Team", label: "Core Team Members" },
 ] as const;
 
-export default function TeamClient({ initialTeam }: { initialTeam: TeamMemberRecord[] }) {
+const PINNED_EDITIONS = [2026, 2023];
+
+function readEdition(value?: string | null) {
+  if (!value || value.toLowerCase() === "all") return "All";
+  return /^(19|20)\d{2}$/.test(value) ? value : "All";
+}
+
+export default function TeamClient({
+  initialTeam,
+  events,
+  initialYear,
+}: {
+  initialTeam: TeamMemberRecord[];
+  events: TeamEvent[];
+  initialYear?: string;
+}) {
   const [flippedId, setFlippedId] = useState<string | null>(null);
+  const [edition, setEdition] = useState(() => readEdition(initialYear));
 
   const gradients = [
     "linear-gradient(135deg,#7a1f19,#2b0f0d)",
@@ -92,16 +116,87 @@ export default function TeamClient({ initialTeam }: { initialTeam: TeamMemberRec
     "linear-gradient(135deg,#3a1030,#120510)",
   ];
 
+  const editionYears = useMemo(() => {
+    const years = new Set<number>(PINNED_EDITIONS);
+    for (const member of initialTeam) {
+      years.add(teamMemberEditionYear(member.eventId, events));
+    }
+    return Array.from(years).sort((yearA, yearB) => yearB - yearA);
+  }, [events, initialTeam]);
+
+  const filters = ["All", ...editionYears.map(String)];
+
+  const yearGroups = useMemo(() => {
+    const selectedYears =
+      edition === "All" ? editionYears : [Number(edition)];
+
+    return selectedYears
+      .map((year) => ({
+        year,
+        members: initialTeam.filter(
+          (member) => teamMemberEditionYear(member.eventId, events) === year,
+        ),
+      }))
+      .filter((group) => edition !== "All" || group.members.length > 0);
+  }, [edition, editionYears, events, initialTeam]);
+
+  useEffect(() => {
+    const syncFromUrl = () => setEdition(readEdition(new URLSearchParams(window.location.search).get("year")));
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, []);
+
+  const chooseEdition = (next: string) => {
+    setEdition(next);
+    setFlippedId(null);
+    const url = next === "All" ? "/team" : `/team?year=${next}`;
+    window.history.pushState(null, "", url);
+  };
+
   return (
     <section className="border-b border-neutral-800/80 bg-neutral-950 px-4 py-12 sm:px-6 sm:py-16 lg:px-10">
-      <div className="mx-auto max-w-7xl space-y-16">
-        {initialTeam.length === 0 ? (
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex flex-wrap gap-2">
+          {filters.map((year) => (
+            <button
+              key={year}
+              type="button"
+              onClick={() => chooseEdition(year)}
+              className={`border px-3.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.15em] transition-colors ${
+                edition === year
+                  ? "border-[#EB0028] bg-[#EB0028] text-white"
+                  : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-600 hover:text-white"
+              }`}
+            >
+              {year === "All" ? "All editions" : year}
+            </button>
+          ))}
+        </div>
+
+        {yearGroups.length === 0 ? (
           <p className="border border-white/10 px-5 py-10 text-center font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
             Team profiles will be announced soon.
           </p>
         ) : (
-          teamSections.map((section) => {
-            const sectionMembers = initialTeam.filter((member) =>
+          <div className="space-y-20">
+            {yearGroups.map((group) => (
+              <div key={group.year} id={`team-year-${group.year}`} className="scroll-mt-28 space-y-16">
+                <div className="border-b border-white/10 pb-4">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#EB0028]">
+                    {group.year === new Date().getFullYear() ? "Current edition" : "Archive edition"}
+                  </span>
+                  <h2 className="mt-2 font-helvetica text-3xl font-black uppercase tracking-tight text-white">
+                    TEDxSMIU {group.year}
+                  </h2>
+                </div>
+
+                {group.members.length === 0 ? (
+                  <p className="border border-white/10 px-5 py-10 text-center font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+                    The {group.year} team will appear here once those profiles are added.
+                  </p>
+                ) : (
+                  teamSections.map((section) => {
+            const sectionMembers = group.members.filter((member) =>
               section.key === "Core Team"
                 ? !member.role || !["Chief", "Lead", "Organizer"].includes(member.role)
                 : member.role === section.key
@@ -112,9 +207,9 @@ export default function TeamClient({ initialTeam }: { initialTeam: TeamMemberRec
             return (
               <div key={section.key}>
                 <div className="mb-6 flex items-end justify-between border-b border-white/10 pb-4">
-                  <h2 className="mt-2 font-helvetica text-[20px] font-black uppercase tracking-tight text-white sm:text-2xl">
+                  <h3 className="mt-2 font-helvetica text-[20px] font-black uppercase tracking-tight text-white sm:text-2xl">
                     {section.label}
-                  </h2>
+                  </h3>
                   <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">
                     {sectionMembers.length} {sectionMembers.length === 1 ? "profile" : "profiles"}
                   </span>
@@ -212,6 +307,10 @@ export default function TeamClient({ initialTeam }: { initialTeam: TeamMemberRec
               </div>
             );
           })
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </section>

@@ -258,6 +258,24 @@ export const team = pgTable("team", {
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
+export const coreTeamImages = pgTable(
+  "core_team",
+  {
+    id: text("id").primaryKey(),
+    teamId: text("team_id")
+      .notNull()
+      .references(() => team.id, { onDelete: "cascade" }),
+    imageUrl: text("image_url").notNull(),
+    name: text("name"),
+    designation: text("designation"),
+    bio: text("bio"),
+    socialLinks: text("social_links").default("[]").notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("core_team_teamId_idx").on(table.teamId)],
+);
+
 export const leadership = pgTable("leadership", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -345,8 +363,13 @@ export const mediaRelations = relations(media, ({ one }) => ({
   event: one(events, { fields: [media.eventId], references: [events.id] }),
 }));
 
-export const teamRelations = relations(team, ({ one }) => ({
+export const teamRelations = relations(team, ({ one, many }) => ({
   event: one(events, { fields: [team.eventId], references: [events.id] }),
+  coreTeamImages: many(coreTeamImages),
+}));
+
+export const coreTeamImageRelations = relations(coreTeamImages, ({ one }) => ({
+  team: one(team, { fields: [coreTeamImages.teamId], references: [team.id] }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

@@ -162,6 +162,36 @@ html::-webkit-scrollbar {
   display: none;
 }
 
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.team-profile-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #eb0028 #242428;
+}
+
+.team-profile-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.team-profile-scrollbar::-webkit-scrollbar-track {
+  background: #242428;
+}
+
+.team-profile-scrollbar::-webkit-scrollbar-thumb {
+  background: #eb0028;
+}
+
+.team-profile-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #c40022;
+}
+
 .admin-scrollbars,
 .admin-scrollbars * {
   scrollbar-width: none;

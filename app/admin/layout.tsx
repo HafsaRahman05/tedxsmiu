@@ -49,6 +49,7 @@ export default async function AdminLayout({
     { label: "Registrations", href: "/admin/registrations", icon: Ticket },
     { label: "Partners", href: "/admin/sponsors", icon: Handshake },
     { label: "Team", href: "/admin/team", icon: Briefcase },
+    { label: "Core Team Profiles", href: "/admin/team/members", icon: Users },
     { label: "Media Library", href: "/admin/media", icon: ImageIcon },
     { label: "Inquiries", href: "/admin/contacts", icon: Mail },
   ];

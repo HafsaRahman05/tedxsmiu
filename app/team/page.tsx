@@ -3,8 +3,8 @@ import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import TeamClient from "./TeamClient";
 import { db } from "@/lib/db";
-import { team as teamTable } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { coreTeamImages, team as teamTable } from "@/lib/db/schema";
+import { asc, desc, eq } from "drizzle-orm";
 
 import { constructMetadata } from "@/lib/seo";
 import { getBreadcrumbSchema } from "@/lib/schema";
@@ -23,6 +23,21 @@ export default async function TeamPage() {
     .from(teamTable)
     .orderBy(desc(teamTable.sortOrder), desc(teamTable.createdAt));
 
+  const coreTeam = await db
+    .select({
+      id: coreTeamImages.id,
+      department: teamTable.department,
+      imageUrl: coreTeamImages.imageUrl,
+      name: coreTeamImages.name,
+      designation: coreTeamImages.designation,
+      bio: coreTeamImages.bio,
+      socialLinks: coreTeamImages.socialLinks,
+      sortOrder: coreTeamImages.sortOrder,
+    })
+    .from(coreTeamImages)
+    .innerJoin(teamTable, eq(coreTeamImages.teamId, teamTable.id))
+    .orderBy(asc(teamTable.department), asc(coreTeamImages.sortOrder));
+
   return (
     <PageShell>
       <JsonLd
@@ -36,7 +51,7 @@ export default async function TeamPage() {
         description="Entirely student-run, entirely volunteer. Here's who put this year's event together."
         gradient="linear-gradient(135deg,#110303,#500a08,#EB0028)"
       />
-      <TeamClient initialTeam={teamList} />
+      <TeamClient initialTeam={teamList} coreTeam={coreTeam} />
     </PageShell>
   );
 }

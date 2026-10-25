@@ -125,6 +125,14 @@ export const TeamInputSchema = z.object({
 
 export const TeamUpdateSchema = TeamInputSchema.partial();
 
+export const CoreTeamMemberProfileSchema = z.object({
+  name: z.string().trim().max(120).nullable(),
+  designation: z.string().trim().max(160).nullable(),
+  bio: z.string().trim().max(2000).nullable(),
+  imageUrl: z.string().url("Invalid image URL").optional().nullable(),
+  socialLinks: z.array(SocialLinkSchema).max(5),
+});
+
 export const GuestInputSchema = z.object({
   guestName: z.string().min(2, "Name must be at least 2 characters"),
   guestType: z.string().min(2).default("VIP Guest"),

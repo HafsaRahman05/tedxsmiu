@@ -10,10 +10,16 @@ export const metadata: Metadata = constructMetadata({
   path: "/gallery",
 });
 
-export default function GalleryPage() {
+type GalleryPageProps = {
+  searchParams: Promise<{ year?: string }>;
+};
+
+export default async function GalleryPage({ searchParams }: GalleryPageProps) {
+  const { year } = await searchParams;
+
   return (
     <PageShell>
-      <GalleryArchive />
+      <GalleryArchive initialEdition={year} />
     </PageShell>
   );
 }

@@ -129,7 +129,7 @@ export const CoreTeamMemberProfileSchema = z.object({
   name: z.string().trim().max(120).nullable(),
   designation: z.string().trim().max(160).nullable(),
   bio: z.string().trim().max(2000).nullable(),
-  imageUrl: z.string().url("Invalid image URL").optional().nullable(),
+  imageUrl: z.string().url("Invalid image URL").optional(),
   socialLinks: z.array(SocialLinkSchema).max(5),
 });
 

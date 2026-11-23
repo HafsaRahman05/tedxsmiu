@@ -5,7 +5,7 @@ import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import { db } from "@/lib/db";
 import { sponsors } from "@/lib/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 
 import { constructMetadata } from "@/lib/seo";
 import { getBreadcrumbSchema } from "@/lib/schema";
@@ -43,7 +43,7 @@ export default async function PartnersPage() {
     .select()
     .from(sponsors)
     .where(eq(sponsors.status, "CONFIRMED"))
-    .orderBy(desc(sponsors.eventYear), desc(sponsors.sortOrder), desc(sponsors.createdAt));
+    .orderBy(desc(sponsors.eventYear), asc(sponsors.sortOrder), desc(sponsors.createdAt));
 
   const partnerYears = Array.from(
     new Set(partnersList.map((partner) => partner.eventYear || 2023)),

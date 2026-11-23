@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { guests } from "@/lib/db/schema";
 import { handleApiError, requireAdminOrOrganizer } from "@/server/auth/helper";
@@ -11,7 +11,7 @@ export async function GET() {
       .select()
       .from(guests)
       .where(eq(guests.status, "ACTIVE"))
-      .orderBy(desc(guests.sortOrder), desc(guests.eventYear), desc(guests.createdAt));
+      .orderBy(asc(guests.sortOrder), desc(guests.eventYear), desc(guests.createdAt));
 
     return NextResponse.json({
       guests: result.map((guest) => {

@@ -62,6 +62,7 @@ function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="rounded-none border border-white/10 bg-black px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#EB0028]"
+            suppressHydrationWarning
           />
         </label>
         <label className="flex flex-col gap-2">

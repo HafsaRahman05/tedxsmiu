@@ -137,19 +137,24 @@ export default function GuestsClient({ initialGuests }: GuestsClientProps) {
       current
         .map((guest) => ({
           ...guest,
-          sortOrder: ids.length - (positions.get(guest.id) ?? ids.length),
+          sortOrder: positions.has(guest.id) ? positions.get(guest.id)! : guest.sortOrder,
         }))
-        .sort((first, second) =>
-          (positions.get(first.id) ?? Number.MAX_SAFE_INTEGER) -
-          (positions.get(second.id) ?? Number.MAX_SAFE_INTEGER),
-        ),
+        .sort((first, second) => {
+          const posFirst = positions.get(first.id);
+          const posSecond = positions.get(second.id);
+          if (posFirst !== undefined && posSecond !== undefined) {
+            return posFirst - posSecond;
+          }
+          if (posFirst !== undefined) return -1;
+          if (posSecond !== undefined) return 1;
+          return (first.sortOrder ?? 0) - (second.sortOrder ?? 0);
+        }),
     );
     setIsSavingOrder(true);
 
     try {
       await persistSortableOrder("guests", ids);
       toast.success("Guest display order saved");
-      router.refresh();
     } catch (error) {
       setGuestsList(previousGuests);
       toast.error(error instanceof Error ? error.message : "Unable to save guest order");

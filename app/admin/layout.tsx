@@ -21,6 +21,7 @@ import {
   Mail, 
   Globe,
   UserRound,
+  Star,
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -52,6 +53,7 @@ export default async function AdminLayout({
     { label: "Core Team Profiles", href: "/admin/team/members", icon: Users },
     { label: "Media Library", href: "/admin/media", icon: ImageIcon },
     { label: "Inquiries", href: "/admin/contacts", icon: Mail },
+    { label: "Reviews", href: "/admin/reviews", icon: Star },
   ];
 
   return (

@@ -2,12 +2,15 @@
 
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
-import { Users, Mic, Mail, MapPin, ArrowRight, Share2 } from "lucide-react";
+import { Users, Mic, Mail, MapPin, ArrowRight, Share2, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa6";
 import { APPLICATIONS_OPEN } from "./application-status";
 import ContactQueryForm from "@/components/ContactQueryForm";
+import ReviewForm from "@/components/ReviewForm";
+
+export type PublicReview = { id: string; name: string; rating: number; message: string };
 
 const CONTACT_INFO = [
   {
@@ -61,8 +64,10 @@ const LEADS = [
 
 export default function ContactClient({
   stats,
+  reviews,
 }: {
   stats: { speakerCount: number; partnerCount: number };
+  reviews: PublicReview[];
 }) {
   const metrics = [
     { value: "300+", label: "Exclusive" },
@@ -171,6 +176,50 @@ export default function ContactClient({
             <ContactQueryForm />
           </div>
 
+        </div>
+      </section>
+
+      {/* Reviews */}
+      <section id="reviews" className="border-b border-border bg-background px-6 py-20 text-foreground lg:px-10">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
+            <div className="max-w-md">
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-primary">
+                Your experience
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-black uppercase tracking-tight text-foreground sm:text-4xl">
+                Leave a review
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                Attended a TEDxSMIU event? Tell us how it went. Reviews are published after the team checks them.
+              </p>
+            </div>
+            <ReviewForm />
+          </div>
+
+          {reviews.length > 0 && (
+            <div className="mt-16 grid gap-6 border-t border-border pt-16 md:grid-cols-2 lg:grid-cols-3">
+              {reviews.map((review) => (
+                <article key={review.id} className="border border-border bg-card p-6">
+                  <div className="flex gap-0.5" aria-label={`${review.rating} out of 5 stars`}>
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <Star
+                        key={value}
+                        aria-hidden="true"
+                        className={`h-4 w-4 ${value <= review.rating ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/80">
+                    {review.message}
+                  </p>
+                  <p className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {review.name}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

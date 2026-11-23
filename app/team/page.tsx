@@ -26,7 +26,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
     db
       .select()
       .from(teamTable)
-      .orderBy(desc(teamTable.sortOrder), desc(teamTable.createdAt)),
+      .orderBy(asc(teamTable.sortOrder), desc(teamTable.createdAt)),
     db
       .select({
         id: events.id,

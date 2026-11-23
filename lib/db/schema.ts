@@ -305,6 +305,16 @@ export const contacts = pgTable("contacts", {
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
+export const reviews = pgTable("reviews", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  rating: integer("rating").notNull(),
+  message: text("message").notNull(),
+  approved: boolean("approved").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [index("reviews_approved_idx").on(table.approved)]);
+
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),

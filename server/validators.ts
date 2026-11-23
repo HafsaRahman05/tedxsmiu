@@ -22,13 +22,13 @@ export const EventSpeakerItemSchema = z.object({
   talkTitle: z.string().min(2, "Talk title must be at least 2 characters"),
   abstract: z.string().optional().nullable(),
   youtubeUrl: z.string().url("Invalid YouTube URL").or(z.string().length(0)).optional().nullable(),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const EventSponsorItemSchema = z.object({
   sponsorId: z.string().min(1, "Sponsor ID required"),
   tier: SponsorTierSchema.default("GOLD"),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const EventInputSchema = z.object({
@@ -57,7 +57,7 @@ export const SpeakerInputSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   eventYear: z.number().int().min(1900).max(2200).default(2026),
   status: SpeakerStatusSchema.default("ACCEPTED"),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const SpeakerUpdateSchema = SpeakerInputSchema.partial();
@@ -80,7 +80,7 @@ export const SponsorInputSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   tier: SponsorTierSchema.optional().nullable(),
   status: SponsorStatusSchema.default("CONFIRMED"),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const SponsorUpdateSchema = SponsorInputSchema.partial();
@@ -120,7 +120,7 @@ export const TeamInputSchema = z.object({
   bio: z.string().optional().nullable(),
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   eventId: z.string().optional().nullable(),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const TeamUpdateSchema = TeamInputSchema.partial();
@@ -143,7 +143,7 @@ export const GuestInputSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   eventId: z.string().optional().nullable(),
   eventYear: z.number().int().min(1900).max(2200).default(2026),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
 });
 
@@ -166,6 +166,15 @@ export const PublicContactInputSchema = z.object({
 });
 
 export const ContactUpdateSchema = ContactInputSchema.partial();
+
+export const PublicReviewInputSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(120),
+  email: z.string().trim().email("Invalid email address").max(200),
+  rating: z.number().int().min(1, "Pick a rating from 1 to 5").max(5, "Pick a rating from 1 to 5"),
+  message: z.string().trim().min(10, "Review must be at least 10 characters").max(2000),
+});
+
+export const ReviewUpdateSchema = z.object({ approved: z.boolean() });
 
 export const ProfileUpdateSchema = z.object({
   bio: z.string().optional().nullable(),

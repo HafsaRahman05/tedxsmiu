@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { speakers } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, asc, desc } from "drizzle-orm";
 import { getSessionUser, requireUser, handleApiError } from "@/server/auth/helper";
 import { SpeakerInputSchema } from "@/server/validators";
 
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       .select()
       .from(speakers)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(speakers.eventYear), desc(speakers.sortOrder), desc(speakers.createdAt));
+      .orderBy(desc(speakers.eventYear), asc(speakers.sortOrder), desc(speakers.createdAt));
 
     const mapped = result.map((s, index) => {
       const gradients = [

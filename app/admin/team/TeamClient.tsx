@@ -65,17 +65,25 @@ const PREDEFINED_DEPARTMENTS = [
   "Influencer Wing",
 ];
 
+// These values are the section classifiers read by the public team page.
+// They must stay in sync with the filter logic in app/team/TeamClient.tsx.
+const SECTION_ROLES = [
+  { value: "Lead", label: "Leads & Heads" },
+  { value: "Organizer", label: "Organizer (individual)" },
+  { value: "Core Team", label: "Core Team (dept. card)" },
+];
+
 const PREDEFINED_ROLES = [
-  "Patron",
   "Lead Organizer",
-  "Licensee",
   "Co-Lead Organizer",
+  "License Holder & Organizer",
   "Team Lead",
   "Deputy Lead",
   "Co-Lead",
   "Team Member",
   "Volunteer",
   "Advisor",
+  "Patron",
 ];
 
 export default function TeamClient({ initialTeam, events }: TeamClientProps) {
@@ -114,6 +122,9 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
   const [name, setName] = useState("");
   const [selectedDept, setSelectedDept] = useState(PREDEFINED_DEPARTMENTS[0]);
   const [customDept, setCustomDept] = useState("");
+  // section = the classifier key read by the public page ("Lead", "Organizer", "Core Team")
+  const [selectedSection, setSelectedSection] = useState(SECTION_ROLES[0].value);
+  // designation = the free-text title shown on the flip card
   const [selectedRole, setSelectedRole] = useState(PREDEFINED_ROLES[0]);
   const [customRole, setCustomRole] = useState("");
   const [designation, setDesignation] = useState("");
@@ -130,13 +141,14 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
     setName("");
     setSelectedDept(PREDEFINED_DEPARTMENTS[0]);
     setCustomDept("");
+    setSelectedSection(SECTION_ROLES[0].value);
     setSelectedRole(PREDEFINED_ROLES[0]);
     setCustomRole("");
     setDesignation("");
     setImageUrl("");
     setBio("");
     setEventId(current2026EventId);
-    setSortOrder(0);
+    setSortOrder(teamList.length);
     setSocialLinks([]);
     setIsModalOpen(true);
   };
@@ -153,19 +165,27 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
       setCustomDept(member.department);
     }
 
-    if (PREDEFINED_ROLES.includes(member.role)) {
-      setSelectedRole(member.role);
+    // The DB `role` column stores the section classifier key
+    const sectionMatch = SECTION_ROLES.find((s) => s.value === member.role);
+    setSelectedSection(sectionMatch ? sectionMatch.value : SECTION_ROLES[0].value);
+
+    // `designation` stores the human-readable title shown on the card
+    if (PREDEFINED_ROLES.includes(member.designation || "")) {
+      setSelectedRole(member.designation || PREDEFINED_ROLES[0]);
       setCustomRole("");
-    } else {
+    } else if (member.designation) {
       setSelectedRole("CUSTOM");
-      setCustomRole(member.role);
+      setCustomRole(member.designation);
+    } else {
+      setSelectedRole(PREDEFINED_ROLES[0]);
+      setCustomRole("");
     }
 
     setDesignation(member.designation || "");
     setImageUrl(member.imageUrl || "");
     setBio(member.bio || "");
     setEventId(member.eventId || "");
-    setSortOrder(member.sortOrder || 0);
+    setSortOrder(Math.max(0, member.sortOrder ?? 0));
     setSocialLinks(member.socialLinks || []);
     setIsModalOpen(true);
   };
@@ -203,26 +223,23 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
     e.preventDefault();
 
     const finalDepartment = selectedDept === "CUSTOM" ? customDept : selectedDept;
-    const finalRole = selectedRole === "CUSTOM" ? customRole : selectedRole;
+    const finalDesignation = selectedRole === "CUSTOM" ? customRole : selectedRole;
 
     if (!finalDepartment) {
       toast.error("Department is required");
-      return;
-    }
-    if (!finalRole) {
-      toast.error("Role is required");
       return;
     }
 
     const payload = {
       name,
       department: finalDepartment,
-      role: finalRole,
-      designation: designation || null,
+      // role column = section classifier key ("Lead", "Organizer", "Core Team")
+      role: selectedSection,
+      designation: finalDesignation || designation || null,
       imageUrl: imageUrl || null,
       bio: bio || null,
       eventId: eventId || null,
-      sortOrder: Number(sortOrder),
+      sortOrder: Math.max(0, Number(sortOrder)),
       socialLinks,
     };
 
@@ -288,19 +305,24 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
       current
         .map((member) => ({
           ...member,
-          sortOrder: ids.length - (positions.get(member.id) ?? ids.length),
+          sortOrder: positions.has(member.id) ? positions.get(member.id)! : member.sortOrder,
         }))
-        .sort((first, second) =>
-          (positions.get(first.id) ?? Number.MAX_SAFE_INTEGER) -
-          (positions.get(second.id) ?? Number.MAX_SAFE_INTEGER),
-        ),
+        .sort((first, second) => {
+          const posFirst = positions.get(first.id);
+          const posSecond = positions.get(second.id);
+          if (posFirst !== undefined && posSecond !== undefined) {
+            return posFirst - posSecond;
+          }
+          if (posFirst !== undefined) return -1;
+          if (posSecond !== undefined) return 1;
+          return (first.sortOrder ?? 0) - (second.sortOrder ?? 0);
+        }),
     );
     setIsSavingOrder(true);
 
     try {
       await persistSortableOrder("team", ids);
       toast.success("Team display order saved");
-      router.refresh();
     } catch (error) {
       setTeamList(previousTeam);
       toast.error(error instanceof Error ? error.message : "Unable to save team order");
@@ -387,13 +409,14 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                 );
               }
 
+              const displayedTeamIds = displayed.map((m) => m.id);
               return displayed.map((member) => {
                 const year = getEventYear(member.eventId);
                 return (
                   <SortableTableRow
                     key={member.id}
                     id={member.id}
-                    ids={teamIds}
+                    ids={displayedTeamIds}
                     onReorder={saveTeamOrder}
                     disabled={isSavingOrder}
                     className="border-border transition-colors hover:bg-secondary/20"
@@ -431,7 +454,7 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                       <div className="space-y-1">
                         <span className="inline-flex items-center gap-1 rounded-none bg-secondary border border-border px-2 py-0.5 font-mono text-[10px] font-bold text-foreground uppercase">
                           <Shield className="h-3 w-3 text-primary" />
-                          {member.role}
+                          {SECTION_ROLES.find((s) => s.value === member.role)?.label ?? member.role}
                         </span>
                         {member.designation && (
                           <p className="text-xs text-muted-foreground font-mono italic">
@@ -575,11 +598,30 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                 )}
               </div>
 
-              {/* Role & Custom Role */}
+              {/* Section (classifier) & Designation/Title */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Role *
+                    Section *
+                  </Label>
+                  <select
+                    value={selectedSection}
+                    onChange={(e) => setSelectedSection(e.target.value)}
+                    className="flex h-10 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {SECTION_ROLES.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-muted-foreground font-mono">
+                    Controls which section this appears under on the team page.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Designation / Title *
                   </Label>
                   <select
                     value={selectedRole}
@@ -591,38 +633,19 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                         {r}
                       </option>
                     ))}
-                    <option value="CUSTOM">+ Custom Role...</option>
+                    <option value="CUSTOM">+ Custom title...</option>
                   </select>
-                </div>
-                {selectedRole === "CUSTOM" && (
-                  <div className="space-y-2">
-                    <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Enter Custom Role *
-                    </Label>
+                  {selectedRole === "CUSTOM" && (
                     <Input
                       type="text"
                       required
                       value={customRole}
                       onChange={(e) => setCustomRole(e.target.value)}
-                      placeholder="e.g. Executive Director"
+                      placeholder="e.g. License Holder & Organizer"
                       className="rounded-none border-border bg-background focus-visible:ring-primary"
                     />
-                  </div>
-                )}
-              </div>
-
-              {/* Custom Designation Option */}
-              <div className="space-y-2">
-                <Label className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Custom Designation Title (Optional)
-                </Label>
-                <Input
-                  type="text"
-                  value={designation}
-                  onChange={(e) => setDesignation(e.target.value)}
-                  placeholder="e.g. Head of Creative Strategy & Curation"
-                  className="rounded-none border-border bg-background focus-visible:ring-primary"
-                />
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -652,8 +675,9 @@ export default function TeamClient({ initialTeam, events }: TeamClientProps) {
                   </Label>
                   <Input
                     type="number"
+                    min={0}
                     value={sortOrder}
-                    onChange={(e) => setSortOrder(Number(e.target.value))}
+                    onChange={(e) => setSortOrder(Math.max(0, Number(e.target.value)))}
                     className="rounded-none border-border bg-background focus-visible:ring-primary"
                   />
                 </div>

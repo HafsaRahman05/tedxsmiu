@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sponsors } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, asc, desc } from "drizzle-orm";
 import { getSessionUser, requireAdminOrOrganizer, handleApiError } from "@/server/auth/helper";
 import { SponsorInputSchema } from "@/server/validators";
 
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       .select()
       .from(sponsors)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(sponsors.sortOrder), desc(sponsors.createdAt));
+      .orderBy(asc(sponsors.sortOrder), desc(sponsors.createdAt));
 
     const mapped = result.map((s) => {
       let parsedSocialLinks = [];

@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
+import { asc, desc, eq, isNull } from "drizzle-orm";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import TeamClient from "./TeamClient";
 import { db } from "@/lib/db";
-import { events, team as teamTable } from "@/lib/db/schema";
-import { asc, desc, isNull } from "drizzle-orm";
-
+import { coreTeamImages, events, team as teamTable } from "@/lib/db/schema";
 import { constructMetadata } from "@/lib/seo";
 import { getBreadcrumbSchema } from "@/lib/schema";
 import JsonLd from "@/components/seo/JsonLd";
@@ -39,6 +38,21 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       .where(isNull(events.deletedAt)),
   ]);
 
+  const coreTeam = await db
+    .select({
+      id: coreTeamImages.id,
+      department: teamTable.department,
+      imageUrl: coreTeamImages.imageUrl,
+      name: coreTeamImages.name,
+      designation: coreTeamImages.designation,
+      bio: coreTeamImages.bio,
+      socialLinks: coreTeamImages.socialLinks,
+      sortOrder: coreTeamImages.sortOrder,
+    })
+    .from(coreTeamImages)
+    .innerJoin(teamTable, eq(coreTeamImages.teamId, teamTable.id))
+    .orderBy(asc(teamTable.department), asc(coreTeamImages.sortOrder));
+
   return (
     <PageShell>
       <JsonLd
@@ -54,6 +68,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       />
       <TeamClient
         initialTeam={teamList}
+        coreTeam={coreTeam}
         events={eventList.map((event) => ({
           ...event,
           date: event.date ? event.date.toISOString() : null,

@@ -12,8 +12,22 @@
     {
       "idx": 1,
       "version": "7",
+      "when": 1792950000000,
+      "tag": "0003_add_core_team_images",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792953600000,
+      "tag": "0004_add_core_team_member_profiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
       "when": 1795400000000,
-      "tag": "0003_add_reviews",
+      "tag": "0005_add_reviews",
       "breakpoints": true
     }
   ]

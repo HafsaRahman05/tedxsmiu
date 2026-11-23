@@ -39,9 +39,27 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const folder = formData.get("folder");
+    const isCoreTeamUpload = folder === "core-team";
+
+    if (folder !== null && !isCoreTeamUpload) {
+      return NextResponse.json({ error: "Invalid upload folder" }, { status: 400 });
+    }
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    if (
+      isCoreTeamUpload &&
+      !["image/jpeg", "image/png", "image/webp", "image/avif"].includes(
+        file.type?.toLowerCase() || "",
+      )
+    ) {
+      return NextResponse.json(
+        { error: "Core team photos must be JPG, PNG, WebP, or AVIF images" },
+        { status: 400 },
+      );
     }
 
     // 1. File Size Validation
@@ -91,7 +109,7 @@ export async function POST(request: NextRequest) {
       const result = await new Promise<any>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
-            folder: "tedx-smiu",
+            folder: isCoreTeamUpload ? "core team" : "tedx-smiu",
             public_id: uniqueFileName.replace(rawExtension, ""),
             resource_type: "auto",
           },

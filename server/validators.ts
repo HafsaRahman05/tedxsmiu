@@ -159,6 +159,15 @@ export const PublicContactInputSchema = z.object({
 
 export const ContactUpdateSchema = ContactInputSchema.partial();
 
+export const PublicReviewInputSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(120),
+  email: z.string().trim().email("Invalid email address").max(200),
+  rating: z.number().int().min(1, "Pick a rating from 1 to 5").max(5, "Pick a rating from 1 to 5"),
+  message: z.string().trim().min(10, "Review must be at least 10 characters").max(2000),
+});
+
+export const ReviewUpdateSchema = z.object({ approved: z.boolean() });
+
 export const ProfileUpdateSchema = z.object({
   bio: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),

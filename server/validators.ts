@@ -22,13 +22,13 @@ export const EventSpeakerItemSchema = z.object({
   talkTitle: z.string().min(2, "Talk title must be at least 2 characters"),
   abstract: z.string().optional().nullable(),
   youtubeUrl: z.string().url("Invalid YouTube URL").or(z.string().length(0)).optional().nullable(),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const EventSponsorItemSchema = z.object({
   sponsorId: z.string().min(1, "Sponsor ID required"),
   tier: SponsorTierSchema.default("GOLD"),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const EventInputSchema = z.object({
@@ -57,7 +57,7 @@ export const SpeakerInputSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   eventYear: z.number().int().min(1900).max(2200).default(2026),
   status: SpeakerStatusSchema.default("ACCEPTED"),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const SpeakerUpdateSchema = SpeakerInputSchema.partial();
@@ -80,7 +80,7 @@ export const SponsorInputSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   tier: SponsorTierSchema.optional().nullable(),
   status: SponsorStatusSchema.default("CONFIRMED"),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const SponsorUpdateSchema = SponsorInputSchema.partial();
@@ -120,7 +120,7 @@ export const TeamInputSchema = z.object({
   bio: z.string().optional().nullable(),
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   eventId: z.string().optional().nullable(),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const TeamUpdateSchema = TeamInputSchema.partial();
@@ -135,7 +135,7 @@ export const GuestInputSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).optional().nullable(),
   eventId: z.string().optional().nullable(),
   eventYear: z.number().int().min(1900).max(2200).default(2026),
-  sortOrder: z.number().int().default(0),
+  sortOrder: z.number().int().min(0).default(0),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
 });
 

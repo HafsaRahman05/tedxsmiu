@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const tableName = tableNames[entity as ReorderEntity];
     const idValues = ids.map((id) => sql`${id}`);
-    const orderCases = ids.map((id, index) => sql`WHEN ${id} THEN ${ids.length - index}`);
+    const orderCases = ids.map((id, index) => sql`WHEN ${id} THEN ${index}`);
 
     await db.transaction(async (tx) => {
       const existing = await tx.execute(

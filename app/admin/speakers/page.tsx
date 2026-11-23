@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { speakers } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import SpeakersClient from "./SpeakersClient";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export default async function AdminSpeakersPage() {
           with: { event: true },
         },
       },
-      orderBy: [desc(speakers.sortOrder), desc(speakers.createdAt)],
+      orderBy: [asc(speakers.sortOrder), desc(speakers.createdAt)],
     });
 
   const initialSpeakers = rawSpeakers.map((s) => {

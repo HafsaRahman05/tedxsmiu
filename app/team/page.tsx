@@ -4,7 +4,7 @@ import PageHero from "@/components/PageHero";
 import TeamClient from "./TeamClient";
 import { db } from "@/lib/db";
 import { events, team as teamTable } from "@/lib/db/schema";
-import { desc, isNull } from "drizzle-orm";
+import { asc, desc, isNull } from "drizzle-orm";
 
 import { constructMetadata } from "@/lib/seo";
 import { getBreadcrumbSchema } from "@/lib/schema";
@@ -27,7 +27,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
     db
       .select()
       .from(teamTable)
-      .orderBy(desc(teamTable.sortOrder), desc(teamTable.createdAt)),
+      .orderBy(asc(teamTable.sortOrder), desc(teamTable.createdAt)),
     db
       .select({
         id: events.id,

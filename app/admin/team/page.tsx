@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { team, events } from "@/lib/db/schema";
-import { isNull, desc } from "drizzle-orm";
+import { isNull, asc, desc } from "drizzle-orm";
 import TeamClient from "./TeamClient";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export default async function AdminTeamPage() {
   const rawTeam = await db
     .select()
     .from(team)
-    .orderBy(desc(team.sortOrder), desc(team.createdAt));
+    .orderBy(asc(team.sortOrder), desc(team.createdAt));
 
   const initialTeam = rawTeam.map((m) => {
     let parsedSocialLinks = [];

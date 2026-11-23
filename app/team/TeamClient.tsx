@@ -81,12 +81,13 @@ type TeamEvent = {
   date: string | null;
 };
 
+const LEADS_AND_HEADS_KEYS = ["Chief", "Lead"] as const;
+
 const teamSections = [
-  { key: "Chief", label: "Chief Leadership" },
-  { key: "Lead", label: "Leads & Heads" },
-  { key: "Organizer", label: "Organizers" },
-  { key: "Core Team", label: "Core Team Members" },
-] as const;
+  { key: "LeadsAndHeads" as const, label: "Leads & Heads" },
+  { key: "Organizer" as const, label: "Organizers" },
+  { key: "Core Team" as const, label: "Core Team Members" },
+];
 
 const PINNED_EDITIONS = [2026, 2023];
 
@@ -196,11 +197,18 @@ export default function TeamClient({
                   </p>
                 ) : (
                   teamSections.map((section) => {
-            const sectionMembers = group.members.filter((member) =>
-              section.key === "Core Team"
-                ? !member.role || !["Chief", "Lead", "Organizer"].includes(member.role)
-                : member.role === section.key
-            );
+            const sectionMembers = group.members.filter((member) => {
+              if (section.key === "LeadsAndHeads") {
+                return member.role === "Chief" || member.role === "Lead";
+              }
+              if (section.key === "Core Team") {
+                return (
+                  !member.role ||
+                  !([...LEADS_AND_HEADS_KEYS, "Organizer"] as string[]).includes(member.role)
+                );
+              }
+              return member.role === section.key;
+            });
 
             if (sectionMembers.length === 0) return null;
 

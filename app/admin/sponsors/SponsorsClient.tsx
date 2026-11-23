@@ -187,19 +187,24 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
       current
         .map((sponsor) => ({
           ...sponsor,
-          sortOrder: ids.length - (positions.get(sponsor.id) ?? ids.length),
+          sortOrder: positions.has(sponsor.id) ? positions.get(sponsor.id)! : sponsor.sortOrder,
         }))
-        .sort((first, second) =>
-          (positions.get(first.id) ?? Number.MAX_SAFE_INTEGER) -
-          (positions.get(second.id) ?? Number.MAX_SAFE_INTEGER),
-        ),
+        .sort((first, second) => {
+          const posFirst = positions.get(first.id);
+          const posSecond = positions.get(second.id);
+          if (posFirst !== undefined && posSecond !== undefined) {
+            return posFirst - posSecond;
+          }
+          if (posFirst !== undefined) return -1;
+          if (posSecond !== undefined) return 1;
+          return (first.sortOrder ?? 0) - (second.sortOrder ?? 0);
+        }),
     );
     setIsSavingOrder(true);
 
     try {
       await persistSortableOrder("sponsors", ids);
       toast.success("Partner display order saved");
-      router.refresh();
     } catch (error) {
       setSponsorsList(previousSponsors);
       toast.error(error instanceof Error ? error.message : "Unable to save partner order");
@@ -282,11 +287,12 @@ export default function SponsorsClient({ initialSponsors }: SponsorsClientProps)
                 );
               }
 
+              const displayedSponsorIds = displayed.map((s) => s.id);
               return displayed.map((sponsor) => (
                 <SortableTableRow
                   key={sponsor.id}
                   id={sponsor.id}
-                  ids={sponsorIds}
+                  ids={displayedSponsorIds}
                   onReorder={saveSponsorOrder}
                   disabled={isSavingOrder}
                   className="border-border transition-colors hover:bg-secondary/20"

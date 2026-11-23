@@ -75,7 +75,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
     setImageUrl("");
     setEventYear(2026);
     setStatus("ACCEPTED");
-    setSortOrder(0);
+    setSortOrder(speakersList.length);
     setSocialLinks([]);
     setIsModalOpen(true);
   };
@@ -88,7 +88,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
     setImageUrl(speaker.imageUrl || "");
     setEventYear(speaker.eventYear || 2026);
     setStatus(speaker.status);
-    setSortOrder(speaker.sortOrder || 0);
+    setSortOrder(Math.max(0, speaker.sortOrder ?? 0));
     setSocialLinks(speaker.socialLinks || []);
     setIsModalOpen(true);
   };
@@ -132,7 +132,7 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
       imageUrl: imageUrl || null,
       eventYear: Number(eventYear),
       status,
-      sortOrder: Number(sortOrder),
+      sortOrder: Math.max(0, Number(sortOrder)),
       socialLinks,
     };
 
@@ -212,19 +212,24 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
       current
         .map((speaker) => ({
           ...speaker,
-          sortOrder: ids.length - (positions.get(speaker.id) ?? ids.length),
+          sortOrder: positions.has(speaker.id) ? positions.get(speaker.id)! : speaker.sortOrder,
         }))
-        .sort((first, second) =>
-          (positions.get(first.id) ?? Number.MAX_SAFE_INTEGER) -
-          (positions.get(second.id) ?? Number.MAX_SAFE_INTEGER),
-        ),
+        .sort((first, second) => {
+          const posFirst = positions.get(first.id);
+          const posSecond = positions.get(second.id);
+          if (posFirst !== undefined && posSecond !== undefined) {
+            return posFirst - posSecond;
+          }
+          if (posFirst !== undefined) return -1;
+          if (posSecond !== undefined) return 1;
+          return (first.sortOrder ?? 0) - (second.sortOrder ?? 0);
+        }),
     );
     setIsSavingOrder(true);
 
     try {
       await persistSortableOrder("speakers", ids);
       toast.success("Speaker display order saved");
-      router.refresh();
     } catch (error) {
       setSpeakersList(previousSpeakers);
       toast.error(error instanceof Error ? error.message : "Unable to save speaker order");
@@ -307,11 +312,12 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                 );
               }
 
+              const displayedSpeakerIds = displayed.map((s) => s.id);
               return displayed.map((speaker) => (
                 <SortableTableRow
                   key={speaker.id}
                   id={speaker.id}
-                  ids={speakerIds}
+                  ids={displayedSpeakerIds}
                   onReorder={saveSpeakerOrder}
                   disabled={isSavingOrder}
                   className="border-border transition-colors hover:bg-secondary/20"
@@ -521,8 +527,9 @@ export default function SpeakersClient({ initialSpeakers }: SpeakersClientProps)
                   </Label>
                   <Input
                     type="number"
+                    min={0}
                     value={sortOrder}
-                    onChange={(e) => setSortOrder(Number(e.target.value))}
+                    onChange={(e) => setSortOrder(Math.max(0, Number(e.target.value)))}
                     className="rounded-none border-border bg-background focus-visible:ring-primary"
                   />
                 </div>

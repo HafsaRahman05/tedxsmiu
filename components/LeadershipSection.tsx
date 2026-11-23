@@ -87,6 +87,12 @@ export default function LeadershipSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!selectedLeader) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [selectedLeader]);
+
+  useEffect(() => {
     let isMounted = true;
 
     fetch("/api/leadership")
@@ -324,7 +330,7 @@ export default function LeadershipSection() {
                 <X className="h-5 w-5" />
               </button>
 
-              <div className="overflow-y-auto p-5 sm:p-8">
+              <div className="overflow-y-auto p-5 sm:p-8" data-lenis-prevent>
                 <div className="flex flex-col items-start gap-6 sm:flex-row">
                   <div className="relative aspect-square w-full shrink-0 overflow-hidden border border-line bg-ink sm:w-44">
                     <Image

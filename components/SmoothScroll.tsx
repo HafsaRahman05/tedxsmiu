@@ -30,7 +30,15 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     animationFrameId = requestAnimationFrame(raf);
 
+    // Lenis ignores body overflow, so pause it whenever a menu/modal locks the body.
+    const syncLock = () =>
+      document.body.style.overflow === "hidden" ? lenis.stop() : lenis.start();
+    const observer = new MutationObserver(syncLock);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["style"] });
+    syncLock();
+
     return () => {
+      observer.disconnect();
       cancelAnimationFrame(animationFrameId);
       lenis.destroy();
     };

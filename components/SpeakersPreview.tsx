@@ -45,6 +45,12 @@ export default function SpeakersPreview() {
   const [speakersList, setSpeakersList] = useState<Speaker[]>([]);
   const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!selectedSpeaker) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [selectedSpeaker]);
   const [marquee, setMarquee] = useState({ copies: 2, distance: 0 });
   const galleryRef = useRef<HTMLDivElement>(null);
   const firstSetRef = useRef<HTMLDivElement>(null);
@@ -214,7 +220,7 @@ export default function SpeakersPreview() {
             <motion.button type="button" aria-label="Close speaker details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedSpeaker(null)} className="absolute inset-0 cursor-default bg-black/80 backdrop-blur-md" />
             <motion.div role="dialog" aria-modal="true" aria-labelledby="preview-speaker-title" initial={{ opacity: 0, scale: 0.95, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 15 }} className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 text-left text-white shadow-2xl">
               <button type="button" onClick={() => setSelectedSpeaker(null)} aria-label="Close speaker details" className="absolute right-4 top-4 z-20 rounded-full bg-black/60 p-2 text-neutral-400 transition-colors hover:text-white"><X className="h-5 w-5" /></button>
-              <div className="overflow-y-auto p-5 sm:p-8">
+              <div className="overflow-y-auto p-5 sm:p-8" data-lenis-prevent>
                 <div className="flex flex-col items-start gap-6 sm:flex-row">
                   <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 sm:w-44"><Image src={cleanImageUrl(selectedSpeaker.image, SPEAKER_FALLBACK_IMAGE)} alt={selectedSpeaker.name} fill className="object-cover" /></div>
                   <div className="flex-1">

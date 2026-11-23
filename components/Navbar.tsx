@@ -146,6 +146,7 @@ export default function Navbar() {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="absolute top-full left-0 right-0 border-b border-white/10 bg-ink/98 backdrop-blur-2xl px-6 py-6 shadow-2xl lg:hidden flex flex-col gap-2 max-h-[calc(100vh-70px)] overflow-y-auto"
+            data-lenis-prevent
           >
             <div className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-neutral-400 pb-2 border-b border-white/10">
               Navigation
